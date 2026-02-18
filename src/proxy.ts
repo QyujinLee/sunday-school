@@ -23,7 +23,7 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL('/login', req.url));
   }
 
-  if (token && isPublicPath) {
+  if (token && pathname === '/login') {
     return NextResponse.redirect(new URL('/', req.url));
   }
 
