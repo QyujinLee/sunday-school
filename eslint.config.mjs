@@ -16,7 +16,7 @@ const eslintConfig = defineConfig([
       "import/resolver": {
         node: {},
         typescript: {
-          directory: "./src",
+          project: "./tsconfig.json",
         },
       },
       "import/parsers": {
@@ -36,6 +36,8 @@ const eslintConfig = defineConfig([
             { pattern: "react", group: "external", position: "before" },
             { pattern: "next", group: "external", position: "before" },
             { pattern: "next/**", group: "external", position: "before" },
+            { pattern: "@/**", group: "internal", position: "before" },
+            { pattern: "~/**", group: "internal", position: "after" },
           ],
           pathGroupsExcludedImportTypes: ["react", "next", "next/**"],
           alphabetize: {

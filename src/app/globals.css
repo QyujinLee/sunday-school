@@ -13,8 +13,12 @@
   --color-primary-soft: #eff6ff;
   --color-primary-soft-hover: #dbeafe;
   --color-accent: #f59e0b;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fee2e2;
   --color-primary-rgb: 37 99 235;
   --color-accent-rgb: 245 158 11;
+  --color-danger-rgb: 220 38 38;
+  --color-dim-rgb: 90 90 90;
   --radius-sm: 8px;
   --radius-md: 12px;
   --space-2: 8px;
@@ -22,10 +26,12 @@
   --space-4: 16px;
   --space-6: 24px;
   --container: 1120px;
+  --header-height-mobile: 60px;
+  --header-height-desktop: 80px;
 
   /* Breakpoints */
-  --bp-mobile-max: 767px;
-  --bp-tablet-min: 768px;
+  --bp-mobile-max: 639px;
+  --bp-tablet-min: 640px;
   --bp-desktop-min: 1024px;
 }
 
@@ -72,6 +78,22 @@ textarea {
   font: inherit;
 }
 
+button,
+[role='button'],
+input[type='button'],
+input[type='submit'],
+input[type='reset'] {
+  cursor: pointer;
+}
+
+button:disabled,
+[role='button'][aria-disabled='true'],
+input[type='button']:disabled,
+input[type='submit']:disabled,
+input[type='reset']:disabled {
+  cursor: not-allowed;
+}
+
 .container {
   width: min(100% - 2rem, var(--container));
   margin-inline: auto;
@@ -80,6 +102,22 @@ textarea {
 :focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+}
+
+@keyframes toast-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.toast-enter {
+  animation: toast-slide-up 220ms ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {

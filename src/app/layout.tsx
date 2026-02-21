@@ -1,17 +1,14 @@
-﻿import type { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import type { Metadata } from 'next';
-
 import localFont from 'next/font/local';
-import Image from 'next/image';
-import Link from 'next/link';
-
 import { getServerSession } from 'next-auth';
 
-import SignOutButton from '@/components/common/SignOutButton';
+import AppShell from '@/components/layout/AppShell';
 import { authOptions } from '@/lib/auth';
 
 import './globals.css';
+import Providers from './providers';
 
 const pretendard = localFont({
   src: [
@@ -38,6 +35,9 @@ export const metadata: Metadata = {
   description: '주일학교 출석/학생/교사 관리 시스템',
 };
 
+/**
+ * 앱 전체 공통 레이아웃을 렌더링한다.
+ */
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -49,25 +49,11 @@ export default async function RootLayout({
   return (
     <html lang="ko" className={pretendard.className}>
       <body>
-        <header className="sticky top-0 z-50 flex items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2.5 sm:px-6">
-          <Link href="/" className="flex items-center gap-2 sm:gap-2.5">
-            <Image src="/img/img_main_logo.png" alt="서광주일학교 로고" width={60} height={60} className="h-10 w-10 sm:h-[60px] sm:w-[60px]" priority />
-            <Image src="/img/img_main_text_logo.png" alt="서광주일학교" width={147} height={30} className="h-6 w-auto sm:h-[30px]" priority />
-          </Link>
-
-          {session?.user ? (
-            <div className="flex items-center gap-3 text-sm text-[var(--color-text)]">
-              <span>{userDisplayName}</span>
-              <SignOutButton />
-            </div>
-          ) : (
-            <Link href="/login" className="text-sm font-medium text-[var(--color-text)] transition hover:text-[var(--color-primary)]">
-              로그인
-            </Link>
-          )}
-        </header>
-
-        {children}
+        <Providers>
+          <AppShell role={session?.user?.role} approvalStatus={session?.user?.approvalStatus} userDisplayName={userDisplayName}>
+            {children}
+          </AppShell>
+        </Providers>
       </body>
     </html>
   );

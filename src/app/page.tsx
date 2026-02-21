@@ -1,59 +1,23 @@
-﻿import Link from 'next/link';
+import Link from 'next/link';
 
-import type { IconDefinition } from '@fortawesome/free-solid-svg-icons';
-import {
-  faAddressBook,
-  faCalendarCheck,
-  faCalendarDays,
-  faClipboardList,
-  faFolderOpen,
-  faGamepad,
-  faSackDollar,
-  faUserGraduate,
-  faUsersGear,
-} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { getServerSession } from 'next-auth';
 
-type HomeMenuItem = {
-  label: string;
-  icon: IconDefinition;
-  url: string;
-};
+import { authOptions } from '@/lib/auth';
+import { getMenuItemsByRole } from '@/lib/menu-items';
 
-const HOME_MENU_ITEMS: HomeMenuItem[] = [
-  { label: '출석 관리', icon: faCalendarCheck, url: '/attendance' },
-  { label: '학생 관리', icon: faUserGraduate, url: '/students' },
-  { label: '교사 정보', icon: faAddressBook, url: '/teachers' },
-  { label: '연간 계획', icon: faCalendarDays, url: 'https://calendar.google.com/calendar/u/0/r' },
-  {
-    label: '회의록',
-    icon: faClipboardList,
-    url: 'https://www.notion.so/17a4a84007c58006857be3ab9ee8dc54?source=copy_link',
-  },
-  {
-    label: '재정 관리',
-    icon: faSackDollar,
-    url: 'https://docs.google.com/spreadsheets/d/1Ya0NdpwoVj9i7eYvJHZ8ZYx6HZtwY2IRdgemHykMI-g/edit?usp=sharing',
-  },
-  {
-    label: '자료 모음',
-    icon: faFolderOpen,
-    url: 'https://www.notion.so/17a4a84007c5808abeefd585825cd6c2?source=copy_link',
-  },
-  {
-    label: '레크레이션',
-    icon: faGamepad,
-    url: '/recreation',
-  },
-  { label: '운영 관리', icon: faUsersGear, url: '/operations' },
-];
+/**
+ * 사용자 권한에 따라 홈 메뉴 카드를 렌더링한다.
+ */
+export default async function Page() {
+  const session = await getServerSession(authOptions);
+  const homeMenuItems = getMenuItemsByRole(session?.user?.role);
 
-export default function Page() {
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6">
       <section className="mx-auto w-full max-w-[680px] rounded-3xl bg-[var(--color-surface)] p-4 sm:p-6">
         <div className="grid grid-cols-[repeat(2,minmax(140px,160px))] justify-center gap-4 md:grid-cols-[repeat(3,minmax(140px,160px))]">
-          {HOME_MENU_ITEMS.map((item) => {
+          {homeMenuItems.map((item) => {
             const isExternal = item.url.startsWith('http');
 
             return (

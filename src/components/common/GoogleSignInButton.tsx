@@ -1,32 +1,37 @@
 ﻿'use client';
 
+import { useMemo } from 'react';
+
+import Image from 'next/image';
+
 import { signIn } from 'next-auth/react';
 
-export default function GoogleSignInButton() {
+import ico_google from '~/public/icon/ico_google.svg';
+
+type GoogleSignInButtonProps = {
+  callbackUrl?: string;
+};
+
+/**
+ * Google OAuth 로그인을 시작하는 버튼을 렌더링한다.
+ */
+export default function GoogleSignInButton({ callbackUrl = '/' }: GoogleSignInButtonProps) {
+  const safeCallbackUrl = useMemo(() => (callbackUrl.startsWith('/') ? callbackUrl : '/'), [callbackUrl]);
+
+  /**
+   * 검증된 callback URL로 Google OAuth 로그인을 시작한다.
+   */
+  const handleSignInClick = async () => {
+    await signIn('google', { callbackUrl: safeCallbackUrl });
+  };
+
   return (
     <button
       type="button"
-      onClick={() => signIn('google', { callbackUrl: '/' })}
-      className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-4 py-3 text-sm font-semibold text-[var(--color-text)] shadow-sm transition hover:border-[var(--color-border)] hover:bg-[var(--color-surface-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+      onClick={handleSignInClick}
+      className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-4 py-3 text-sm font-semibold text-[var(--color-text)] shadow-sm transition hover:border-[var(--color-border)] hover:bg-[var(--color-surface-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
     >
-      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24">
-        <path
-          fill="#4285F4"
-          d="M23.49 12.27c0-.79-.07-1.55-.2-2.27H12v4.31h6.45a5.52 5.52 0 0 1-2.4 3.62v3h3.88c2.27-2.09 3.56-5.18 3.56-8.66Z"
-        />
-        <path
-          fill="#34A853"
-          d="M12 24c3.24 0 5.96-1.07 7.95-2.9l-3.88-3A7.2 7.2 0 0 1 12 19.32a7.18 7.18 0 0 1-6.75-4.96H1.24v3.11A12 12 0 0 0 12 24Z"
-        />
-        <path
-          fill="#FBBC05"
-          d="M5.25 14.36A7.2 7.2 0 0 1 4.85 12c0-.82.14-1.62.4-2.36V6.53H1.24A12 12 0 0 0 0 12c0 1.93.46 3.75 1.24 5.47l4.01-3.11Z"
-        />
-        <path
-          fill="#EA4335"
-          d="M12 4.77c1.76 0 3.34.61 4.58 1.8l3.43-3.43A11.98 11.98 0 0 0 12 0 12 12 0 0 0 1.24 6.53l4.01 3.11A7.18 7.18 0 0 1 12 4.77Z"
-        />
-      </svg>
+      <Image src={ico_google} alt="구글 로그인" width={18} height={18} aria-hidden="true" />
       Google로 로그인
     </button>
   );

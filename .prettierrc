@@ -17,6 +17,7 @@
     "^next/(.*)$",
     "<THIRD_PARTY_MODULES>",
     "^@/(.*)$",
+    "^~/(.*)$",
     "^[./]"
   ],
   "importOrderSeparation": true,
