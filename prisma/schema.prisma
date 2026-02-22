@@ -15,6 +15,9 @@ enum Gender {
 enum Relationship {
   FATHER
   MOTHER
+  GRANDFATHER
+  GRANDMOTHER
+  ETC
 }
 
 enum AttendanceStatus {
@@ -58,12 +61,12 @@ model Student {
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 
-  parentContact     ParentContact?
+  guardianContact   GuardianContact?
   attendances       Attendance[]
   talentTransactions TalentTransaction[]
 }
 
-model ParentContact {
+model GuardianContact {
   id           String   @id @default(cuid())
   studentId    String   @unique
   name         String

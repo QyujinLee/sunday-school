@@ -1,13 +1,13 @@
-import ApprovalStatusCard from '@/components/common/ApprovalStatusCard';
+ï»¿import ApprovalStatusCard from '@/components/common/ApprovalStatusCard';
 
 /**
- * °¡ÀÔ °ÅÀı ¾È³» ÆäÀÌÁö¸¦ ·»´õ¸µÇÑ´Ù.
+ * ê°€ì… ê±°ì ˆ ì•ˆë‚´ í˜ì´ì§€ë¥¼ ë Œë”ë§í•œë‹¤.
  */
 export default function RejectedPage() {
   return (
     <ApprovalStatusCard
-      title="°¡ÀÔÀÌ °ÅÀıµÇ¾ú½À´Ï´Ù"
-      description="°ü¸®ÀÚ°¡ °¡ÀÔ ¿äÃ»À» °ÅÀıÇß½À´Ï´Ù. ¹®ÀÇ°¡ ÇÊ¿äÇÏ¸é °ü¸®ÀÚ¿¡°Ô Á÷Á¢ ¿¬¶ôÇØ ÁÖ¼¼¿ä."
+      title="ê°€ì…ì´ ê±°ì ˆë˜ì—ˆìŠµë‹ˆë‹¤"
+      description="ê´€ë¦¬ìê°€ ê°€ì… ìš”ì²­ì„ ê±°ì ˆí–ˆìŠµë‹ˆë‹¤. ë¬¸ì˜ê°€ í•„ìš”í•˜ë©´ ê´€ë¦¬ìì—ê²Œ ì§ì ‘ ì—°ë½í•´ ì£¼ì„¸ìš”."
     />
   );
 }

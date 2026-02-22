@@ -27,7 +27,7 @@ type ToastProviderProps = {
   children: ReactNode;
 };
 
-const DEFAULT_TOAST_DURATION_MS = 2800;
+const DEFAULT_TOAST_DURATION_MS = 4000;
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 /**
@@ -118,6 +118,15 @@ export default function ToastProvider({ children }: ToastProviderProps) {
     }),
     [clearToasts, dismissToast, showToast],
   );
+  const toastItems = useMemo(
+    () =>
+      toasts.map((toast, index) => ({
+        toast,
+        stackOffset: index * 14,
+        stackZIndex: index + 1,
+      })),
+    [toasts],
+  );
 
   return (
     <ToastContext.Provider value={contextValue}>
@@ -125,11 +134,15 @@ export default function ToastProvider({ children }: ToastProviderProps) {
       {canUsePortal
         ? createPortal(
             <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[70] px-4 pb-4 sm:px-6 sm:pb-6">
-              <div className="mx-auto flex w-full max-w-md flex-col gap-2 sm:mr-0">
-                {toasts.map((toast) => (
+              <div className="relative mx-auto h-44 w-full max-w-md">
+                {toastItems.map(({ toast, stackOffset, stackZIndex }) => (
                   <div
                     key={toast.id}
-                    className={`toast-enter pointer-events-auto rounded-xl border px-3 py-2 shadow-md ${getToastVariantClass(toast.variant ?? 'info')}`}
+                    className={`toast-enter pointer-events-auto absolute left-1/2 w-full -translate-x-1/2 rounded-xl border px-3 py-2 shadow-md ${getToastVariantClass(toast.variant ?? 'info')}`}
+                    style={{
+                      bottom: `${stackOffset}px`,
+                      zIndex: stackZIndex,
+                    }}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
