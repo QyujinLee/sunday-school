@@ -13,6 +13,10 @@ const parseAdminEmails = (): string[] =>
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
+    maxAge: 60 * 60 * 24,
+  },
+  jwt: {
+    maxAge: 60 * 60 * 24,
   },
   providers: [
     GoogleProvider({

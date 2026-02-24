@@ -151,8 +151,8 @@ export default function StudentCreatePage() {
       const invalidFieldKeys = parsedResult.error.issues.map((issue) => String(issue.path[0] ?? '')).filter(Boolean);
       const serializedInvalidFields = serializeInvalidFields(invalidFieldKeys);
       const errorQueryString = serializedInvalidFields
-        ? `error=invalid_input&error_fields=${encodeURIComponent(serializedInvalidFields)}`
-        : 'error=invalid_input';
+        ? `error_code=invalid_input&error_fields=${encodeURIComponent(serializedInvalidFields)}`
+        : 'error_code=invalid_input';
 
       redirect(`/students/new?${errorQueryString}`);
     }
@@ -164,27 +164,31 @@ export default function StudentCreatePage() {
     );
 
     if (Number.isNaN(birthDate.getTime())) {
-      redirect('/students/new?error=invalid_birth_date');
+      redirect('/students/new?error_code=invalid_birth_date');
     }
 
-    await prisma.student.create({
-      data: {
-        name: studentInput.name.trim(),
-        gender: studentInput.gender,
-        birthDate,
-        address: studentInput.address.trim(),
-        phone: studentInput.phone?.trim() || null,
-        guardianContact: hasGuardianContact
-          ? {
-              create: {
-                name: studentInput.guardian_name!.trim(),
-                relationship: studentInput.guardian_relationship as Relationship,
-                phone: studentInput.guardian_phone!.trim(),
-              },
-            }
-          : undefined,
-      },
-    });
+    try {
+      await prisma.student.create({
+        data: {
+          name: studentInput.name.trim(),
+          gender: studentInput.gender,
+          birthDate,
+          address: studentInput.address.trim(),
+          phone: studentInput.phone?.trim() || null,
+          guardianContact: hasGuardianContact
+            ? {
+                create: {
+                  name: studentInput.guardian_name!.trim(),
+                  relationship: studentInput.guardian_relationship as Relationship,
+                  phone: studentInput.guardian_phone!.trim(),
+                },
+              }
+            : undefined,
+        },
+      });
+    } catch {
+      redirect('/students/new?error_code=server_error');
+    }
 
     redirect('/students/new?success_code=student_created');
   }

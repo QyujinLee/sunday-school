@@ -1,13 +1,13 @@
 ﻿'use client';
 
 import type { ReactNode } from 'react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { faBars } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faMoon, faSun } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import SignOutButton from '@/components/common/SignOutButton';
@@ -37,11 +37,25 @@ function isActiveMenu(pathname: string, url: string): boolean {
  */
 export default function AppShell({ children, role, approvalStatus, userDisplayName }: AppShellProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
+    return window.localStorage.getItem('theme_mode') === 'dark';
+  });
   const pathname = usePathname();
   const isSignedIn = Boolean(role);
+  const isAdmin = role === 'ADMIN';
   const isApproved = approvalStatus === 'APPROVED';
-  const shouldShowMenu = isSignedIn && isApproved;
+  const isHomePage = pathname === '/';
+  const shouldShowMenu = isSignedIn && isApproved && !isHomePage;
   const menuItems = useMemo(() => getMenuItemsByRole(role), [role]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('theme-dark', isDarkMode);
+    window.localStorage.setItem('theme_mode', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
 
   /**
    * 모바일 메뉴 열림/닫힘 상태를 토글한다.
@@ -64,6 +78,15 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
     setIsMobileMenuOpen(false);
   };
 
+  /**
+   * 다크모드 상태를 전환하고 사용자 설정을 저장한다.
+   */
+  const handleToggleDarkMode = () => {
+    setIsDarkMode((previous) => {
+      return !previous;
+    });
+  };
+
   return (
     <>
       <header className="sticky top-0 z-50 flex h-[var(--header-height-mobile)] items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 sm:h-[var(--header-height-desktop)] sm:px-6">
@@ -77,7 +100,7 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
             priority
           />
           <Image
-            src="/img/img_main_text_logo.png"
+            src={isDarkMode ? '/img/img_main_text_logo_white.png' : '/img/img_main_text_logo.png'}
             alt="서광주일학교"
             width={147}
             height={30}
@@ -99,6 +122,11 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
                 <FontAwesomeIcon icon={faBars} className="text-[24px]" />
               </button>
             ) : null}
+            {isAdmin ? (
+              <span className="hidden rounded-full border border-[var(--color-primary)] bg-[var(--color-primary-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--color-primary)] sm:inline-flex">
+                관리자
+              </span>
+            ) : null}
             <span className="hidden sm:inline">{userDisplayName}</span>
             <div className="hidden md:block">
               <SignOutButton />
@@ -116,7 +144,7 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
 
       {shouldShowMenu ? (
         <div className="flex">
-          <aside className="sticky top-[var(--header-height-mobile)] hidden h-[calc(100dvh-var(--header-height-mobile))] w-44 shrink-0 border-r border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-4 md:block md:top-[var(--header-height-desktop)] md:h-[calc(100dvh-var(--header-height-desktop))]">
+          <aside className="sticky top-[var(--header-height-mobile)] hidden h-[calc(100dvh-var(--header-height-mobile))] w-44 shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-4 md:flex md:top-[var(--header-height-desktop)] md:h-[calc(100dvh-var(--header-height-desktop))]">
             <nav className="space-y-1">
               {menuItems.map((item) => {
                 const active = isActiveMenu(pathname, item.url);
@@ -140,6 +168,14 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
                 );
               })}
             </nav>
+            <button
+              type="button"
+              onClick={handleToggleDarkMode}
+              className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface-soft)] px-3 py-2 text-xs font-bold text-[var(--color-text)] transition hover:bg-[var(--color-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+            >
+              <FontAwesomeIcon icon={isDarkMode ? faSun : faMoon} className="h-3.5 w-3.5" />
+              {isDarkMode ? '라이트 모드' : '다크 모드'}
+            </button>
           </aside>
 
           <div className="min-w-0 flex-1">{children}</div>
@@ -184,7 +220,25 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
             </nav>
 
             <div className="mt-auto pt-3">
-              <SignOutButton className="w-full" />
+              {isAdmin ? (
+                <div className="mb-2 flex items-center justify-start gap-2">
+                  <span className="inline-flex rounded-full border border-[var(--color-primary)] bg-[var(--color-primary-soft)] px-2 py-0.5 text-xs font-semibold text-[var(--color-primary)]">
+                    관리자
+                  </span>
+                  <p className="text-left text-sm font-medium text-[var(--color-text)]">{userDisplayName}</p>
+                </div>
+              ) : (
+                <p className="mb-2 text-left text-sm font-medium text-[var(--color-text)]">{userDisplayName}</p>
+              )}
+              <button
+                type="button"
+                onClick={handleToggleDarkMode}
+                className="mb-2 inline-flex h-8 w-full items-center justify-center gap-1 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface-soft)] px-2 text-[8px] font-medium text-[var(--color-text)] transition hover:bg-[var(--color-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+              >
+                <FontAwesomeIcon icon={isDarkMode ? faSun : faMoon} className="h-2.5 w-2.5" />
+                {isDarkMode ? '라이트 모드' : '다크 모드'}
+              </button>
+              <SignOutButton className="h-8 w-full rounded-md px-2 py-1.5 text-[8px] font-medium" />
             </div>
           </aside>
         </div>
