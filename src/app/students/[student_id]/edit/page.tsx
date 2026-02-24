@@ -162,8 +162,8 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
         .filter(Boolean);
       const serializedInvalidFields = serializeInvalidFields(invalidFieldKeys);
       const errorQueryString = serializedInvalidFields
-        ? `error=invalid_input&error_fields=${encodeURIComponent(serializedInvalidFields)}`
-        : 'error=invalid_input';
+        ? `error_code=invalid_input&error_fields=${encodeURIComponent(serializedInvalidFields)}`
+        : 'error_code=invalid_input';
 
       redirect(`/students/${studentId}/edit?${errorQueryString}`);
     }
@@ -175,7 +175,7 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
     );
 
     if (Number.isNaN(birthDate.getTime())) {
-      redirect(`/students/${studentId}/edit?error=invalid_birth_date`);
+      redirect(`/students/${studentId}/edit?error_code=invalid_birth_date`);
     }
 
     try {
@@ -213,7 +213,7 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
         }
       });
     } catch {
-      redirect(`/students/${studentId}/edit?error=update_failed`);
+      redirect(`/students/${studentId}/edit?error_code=server_error`);
     }
 
     redirect(`/students/${studentId}/edit?success_code=student_updated`);
@@ -230,7 +230,7 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
         where: { id: studentId },
       });
     } catch {
-      redirect(`/students/${studentId}/edit?error=delete_failed`);
+      redirect(`/students/${studentId}/edit?error_code=server_error`);
     }
 
     redirect('/students?success_code=student_deleted');

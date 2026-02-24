@@ -7,13 +7,10 @@ import { useToast } from '@/components/common/ToastProvider';
 
 const FIELD_LABEL_BY_KEY: Record<string, string> = {
   name: '이름',
-  gender: '성별',
+  phone: '연락처',
   birth_date: '생년월일',
-  address: '주소',
-  phone: '전화번호',
-  guardian_name: '보호자 성함/관계/전화번호',
-  guardian_relationship: '보호자 관계',
-  guardian_phone: '보호자 전화번호',
+  grade: '담당 학년',
+  is_active: '활성 상태',
 };
 
 /**
@@ -33,39 +30,25 @@ function getFieldLabelsFromQuery(errorFields: string | null): string[] {
 }
 
 /**
- * 학생 등록 결과 토스트를 표시한다.
+ * 교사 정보 수정 결과 토스트를 표시한다.
  */
-export default function StudentCreateErrorToast() {
+export default function TeacherEditResultToast() {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showToast } = useToast();
 
   useEffect(() => {
-    const successCode = searchParams.get('success_code');
     const errorCode = searchParams.get('error_code') ?? searchParams.get('error');
 
-    if (!successCode && !errorCode) {
+    if (!errorCode) {
       return;
-    }
-
-    if (successCode === 'student_created') {
-      showToast({
-        variant: 'success',
-        message: '학생 등록이 완료되었습니다.',
-      });
-
-      const timeoutId = window.setTimeout(() => {
-        router.replace('/students');
-      }, 400);
-
-      return () => window.clearTimeout(timeoutId);
     }
 
     if (errorCode === 'invalid_birth_date') {
       showToast({
         variant: 'error',
-        message: '학생 등록에 실패했습니다.',
+        message: '교사 정보 수정에 실패했습니다.',
         description: '생년월일 형식이 올바르지 않습니다.',
       });
     } else if (errorCode === 'invalid_input') {
@@ -77,20 +60,25 @@ export default function StudentCreateErrorToast() {
 
       showToast({
         variant: 'error',
-        message: '학생 등록에 실패했습니다.',
+        message: '교사 정보 수정에 실패했습니다.',
         description,
+      });
+    } else if (errorCode === 'forbidden') {
+      showToast({
+        variant: 'error',
+        message: '작업에 실패했습니다.',
+        description: '수정 권한이 없습니다.',
       });
     } else if (errorCode === 'server_error') {
       showToast({
         variant: 'error',
-        message: '서버 오류로 학생 등록에 실패했습니다.',
+        message: '서버 오류로 교사 정보 수정에 실패했습니다.',
         description: '잠시 후 다시 시도해 주세요.',
       });
     } else {
       showToast({
         variant: 'error',
-        message: '학생 등록에 실패했습니다.',
-        description: '입력한 값을 다시 확인해 주세요.',
+        message: '교사 정보 수정에 실패했습니다.',
       });
     }
 
@@ -98,7 +86,6 @@ export default function StudentCreateErrorToast() {
     nextSearchParams.delete('error');
     nextSearchParams.delete('error_code');
     nextSearchParams.delete('error_fields');
-    nextSearchParams.delete('success_code');
     const nextQueryString = nextSearchParams.toString();
     const nextUrl = nextQueryString ? `${pathname}?${nextQueryString}` : pathname;
 

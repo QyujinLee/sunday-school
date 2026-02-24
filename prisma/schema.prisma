@@ -36,6 +36,11 @@ enum TeacherApprovalStatus {
   REJECTED
 }
 
+enum TalentTransactionReason {
+  ATTENDANCE
+  MANUAL_ADJUST
+}
+
 model Teacher {
   id             String                @id @default(cuid())
   email          String                @unique
@@ -48,6 +53,8 @@ model Teacher {
   isActive       Boolean               @default(true)
   createdAt      DateTime              @default(now())
   updatedAt      DateTime              @updatedAt
+
+  talentTransactions TalentTransaction[]
 }
 
 model Student {
@@ -95,11 +102,16 @@ model Attendance {
 model TalentTransaction {
   id            String   @id @default(cuid())
   studentId     String
+  teacherId     String?
+  reason        TalentTransactionReason?
   transactedAt  DateTime @default(now())
   amount        Int
   createdAt     DateTime @default(now())
 
   student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacher       Teacher? @relation(fields: [teacherId], references: [id], onDelete: SetNull)
 
+  @@index([reason, transactedAt])
+  @@index([teacherId])
   @@index([studentId, transactedAt])
 }
