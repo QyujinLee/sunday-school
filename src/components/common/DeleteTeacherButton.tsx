@@ -58,7 +58,7 @@ export default function DeleteTeacherButton({ deleteFormId, disabled = false }: 
         type="button"
         disabled={disabled}
         onClick={handleOpenModal}
-        className="inline-flex h-8 items-center justify-center rounded-lg border border-[var(--color-danger)] bg-[var(--color-surface)] px-3 text-xs font-medium text-[var(--color-danger)] shadow-sm transition-colors hover:bg-[var(--color-danger-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-danger)] focus-visible:ring-offset-2 disabled:border-[var(--color-border)] disabled:text-[var(--color-muted)] disabled:shadow-none"
+        className="btn btn-danger btn-sm h-8"
       >
         삭제
       </button>

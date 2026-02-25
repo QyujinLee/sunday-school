@@ -29,7 +29,7 @@ export default function GoogleSignInButton({ callbackUrl = '/' }: GoogleSignInBu
     <button
       type="button"
       onClick={handleSignInClick}
-      className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-4 py-3 text-sm font-semibold text-[var(--color-text)] shadow-sm transition hover:border-[var(--color-border)] hover:bg-[var(--color-surface-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+      className="btn btn-secondary btn-md btn-full cursor-pointer gap-2 rounded-xl"
     >
       <Image src={ico_google} alt="구글 로그인" width={18} height={18} aria-hidden="true" />
       Google로 로그인

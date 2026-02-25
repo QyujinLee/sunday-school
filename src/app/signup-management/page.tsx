@@ -243,7 +243,7 @@ export default async function SignupManagementPage() {
                     <input type="hidden" name="teacher_id" value={teacher.id} />
                     <button
                       type="submit"
-                      className="inline-flex items-center justify-center rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)] px-3 py-2 text-sm font-medium text-[var(--color-surface)] transition hover:bg-[var(--color-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+                      className="btn btn-primary btn-md"
                     >
                       승인
                     </button>
@@ -253,7 +253,7 @@ export default async function SignupManagementPage() {
                     <input type="hidden" name="teacher_id" value={teacher.id} />
                     <button
                       type="submit"
-                      className="inline-flex items-center justify-center rounded-lg border border-[var(--color-danger)] bg-[var(--color-surface)] px-3 py-2 text-sm font-medium text-[var(--color-danger)] transition hover:bg-[var(--color-danger-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-danger)] focus-visible:ring-offset-2"
+                      className="btn btn-danger btn-md"
                     >
                       거절
                     </button>
@@ -319,7 +319,7 @@ export default async function SignupManagementPage() {
                           <button
                             type="submit"
                             disabled={isMe && isAdmin}
-                            className="inline-flex h-8 items-center justify-center rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 text-xs font-medium text-[var(--color-text)] shadow-sm transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] hover:text-[var(--color-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 disabled:border-[var(--color-border)] disabled:text-[var(--color-muted)] disabled:shadow-none"
+                            className="btn btn-secondary btn-sm h-8"
                           >
                             {isAdmin ? '관리자 해제' : '관리자 부여'}
                           </button>

@@ -17,8 +17,7 @@ type TeacherRow = {
   isActive: boolean;
 };
 
-const EDIT_BUTTON_CLASS_NAME =
-  'inline-flex items-center justify-center rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-1.5 text-xs font-medium text-[var(--color-text)] transition hover:border-[var(--color-border)] hover:bg-[var(--color-surface-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2';
+const EDIT_BUTTON_CLASS_NAME = 'btn btn-secondary btn-sm';
 
 /**
  * 교사 역할 코드를 사용자 표시용 문자열로 변환한다.

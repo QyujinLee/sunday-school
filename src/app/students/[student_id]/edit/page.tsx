@@ -26,6 +26,27 @@ type StudentEditPageProps = {
   params: Promise<{
     student_id: string;
   }>;
+  searchParams?: Promise<{
+    name?: string | string[];
+    gender?: string | string[];
+    birth_date?: string | string[];
+    address?: string | string[];
+    phone?: string | string[];
+    guardian_name?: string | string[];
+    guardian_relationship?: string | string[];
+    guardian_phone?: string | string[];
+  }>;
+};
+
+type StudentEditFormValues = {
+  name: string;
+  gender: string;
+  birth_date: string;
+  address: string;
+  phone: string;
+  guardian_name: string;
+  guardian_relationship: string;
+  guardian_phone: string;
 };
 
 const studentUpdateSchema = z
@@ -122,10 +143,64 @@ function serializeInvalidFields(fieldKeys: string[]): string {
 }
 
 /**
+ * 쿼리스트링 값에서 단일 문자열을 추출한다.
+ */
+function getSingleSearchParam(value: string | string[] | undefined): string {
+  return typeof value === 'string' ? value : Array.isArray(value) ? value[0] ?? '' : '';
+}
+
+/**
+ * 수정 폼 기본값을 생성한다.
+ */
+function buildFormValues(
+  searchParams: Awaited<StudentEditPageProps['searchParams']> | undefined,
+  student: {
+    name: string;
+    gender: Gender;
+    birthDate: Date;
+    address: string;
+    phone: string | null;
+    guardianContact: {
+      name: string;
+      relationship: Relationship;
+      phone: string;
+    } | null;
+  },
+): StudentEditFormValues {
+  return {
+    name: getSingleSearchParam(searchParams?.name) || student.name,
+    gender: getSingleSearchParam(searchParams?.gender) || student.gender,
+    birth_date: getSingleSearchParam(searchParams?.birth_date) || formatDateToKoreanYmd(student.birthDate),
+    address: getSingleSearchParam(searchParams?.address) || student.address,
+    phone: getSingleSearchParam(searchParams?.phone) || student.phone || '',
+    guardian_name: getSingleSearchParam(searchParams?.guardian_name) || student.guardianContact?.name || '',
+    guardian_relationship:
+      getSingleSearchParam(searchParams?.guardian_relationship) || student.guardianContact?.relationship || '',
+    guardian_phone: getSingleSearchParam(searchParams?.guardian_phone) || student.guardianContact?.phone || '',
+  };
+}
+
+/**
+ * 수정 폼 입력값을 쿼리스트링으로 직렬화한다.
+ */
+function serializeFormValuesToQueryString(formValues: StudentEditFormValues): string {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(formValues).forEach(([key, value]) => {
+    if (value) {
+      searchParams.set(key, value);
+    }
+  });
+
+  return searchParams.toString();
+}
+
+/**
  * 학생 수정 페이지를 렌더링한다.
  */
-export default async function StudentEditPage({ params }: StudentEditPageProps) {
+export default async function StudentEditPage({ params, searchParams }: StudentEditPageProps) {
   const { student_id: studentId } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const deleteFormId = `student-delete-form-${studentId}`;
 
   const student = await prisma.student.findUnique({
@@ -139,11 +214,29 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
     redirect('/students');
   }
 
+  const initialFormValues = buildFormValues(resolvedSearchParams, student);
+
   /**
    * 학생/보호자 정보를 수정하고 목록 페이지로 이동한다.
    */
   async function handleUpdateStudent(formData: FormData) {
     'use server';
+
+    const rawFormValues: StudentEditFormValues = {
+      name: typeof formData.get('name') === 'string' ? (formData.get('name') as string) : '',
+      gender: typeof formData.get('gender') === 'string' ? (formData.get('gender') as string) : '',
+      birth_date: typeof formData.get('birth_date') === 'string' ? (formData.get('birth_date') as string) : '',
+      address: typeof formData.get('address') === 'string' ? (formData.get('address') as string) : '',
+      phone: typeof formData.get('phone') === 'string' ? (formData.get('phone') as string) : '',
+      guardian_name: typeof formData.get('guardian_name') === 'string' ? (formData.get('guardian_name') as string) : '',
+      guardian_relationship:
+        typeof formData.get('guardian_relationship') === 'string'
+          ? (formData.get('guardian_relationship') as string)
+          : '',
+      guardian_phone:
+        typeof formData.get('guardian_phone') === 'string' ? (formData.get('guardian_phone') as string) : '',
+    };
+    const serializedFormValues = serializeFormValuesToQueryString(rawFormValues);
 
     const parsedResult = studentUpdateSchema.safeParse({
       name: normalizeTextValue(formData.get('name')),
@@ -165,7 +258,9 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
         ? `error_code=invalid_input&error_fields=${encodeURIComponent(serializedInvalidFields)}`
         : 'error_code=invalid_input';
 
-      redirect(`/students/${studentId}/edit?${errorQueryString}`);
+      redirect(
+        `/students/${studentId}/edit?${errorQueryString}${serializedFormValues ? `&${serializedFormValues}` : ''}`,
+      );
     }
 
     const studentInput = parsedResult.data;
@@ -175,7 +270,9 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
     );
 
     if (Number.isNaN(birthDate.getTime())) {
-      redirect(`/students/${studentId}/edit?error_code=invalid_birth_date`);
+      redirect(
+        `/students/${studentId}/edit?error_code=invalid_birth_date${serializedFormValues ? `&${serializedFormValues}` : ''}`,
+      );
     }
 
     try {
@@ -213,7 +310,7 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
         }
       });
     } catch {
-      redirect(`/students/${studentId}/edit?error_code=server_error`);
+      redirect(`/students/${studentId}/edit?error_code=server_error${serializedFormValues ? `&${serializedFormValues}` : ''}`);
     }
 
     redirect(`/students/${studentId}/edit?success_code=student_updated`);
@@ -244,7 +341,7 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
           <h1 className="text-2xl font-bold text-[var(--color-text)]">학생 수정</h1>
           <Link
             href="/students"
-            className="inline-flex items-center justify-center rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm font-medium text-[var(--color-text)] transition hover:border-[var(--color-border)] hover:bg-[var(--color-surface-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+            className="btn btn-secondary btn-md"
           >
             목록으로
           </Link>
@@ -258,7 +355,7 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
                 name="name"
                 type="text"
                 required
-                defaultValue={student.name}
+                defaultValue={initialFormValues.name}
                 className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)]"
               />
             </label>
@@ -268,7 +365,7 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
               <select
                 name="gender"
                 required
-                defaultValue={student.gender}
+                defaultValue={initialFormValues.gender}
                 className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)]"
               >
                 <option value={Gender.MALE}>남</option>
@@ -282,7 +379,7 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
                 name="birth_date"
                 type="date"
                 required
-                defaultValue={formatDateToKoreanYmd(student.birthDate)}
+                defaultValue={initialFormValues.birth_date}
                 className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)]"
               />
             </label>
@@ -295,7 +392,7 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
                 name="address"
                 type="text"
                 required
-                defaultValue={student.address}
+                defaultValue={initialFormValues.address}
                 className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)]"
               />
             </label>
@@ -307,7 +404,7 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
                 name="phone"
                 type="text"
                 inputMode="numeric"
-                defaultValue={student.phone ?? ''}
+                defaultValue={initialFormValues.phone}
                 placeholder="010-0000-0000"
                 maxLength={13}
                 pattern="010-[0-9]{4}-[0-9]{4}"
@@ -323,7 +420,7 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
               <input
                 name="guardian_name"
                 type="text"
-                defaultValue={student.guardianContact?.name ?? ''}
+                defaultValue={initialFormValues.guardian_name}
                 className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)]"
               />
             </label>
@@ -332,7 +429,7 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
               <FieldLabel label="관계" />
               <select
                 name="guardian_relationship"
-                defaultValue={student.guardianContact?.relationship ?? ''}
+                defaultValue={initialFormValues.guardian_relationship}
                 className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)]"
               >
                 <option value="" disabled>
@@ -353,7 +450,7 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
                 name="guardian_phone"
                 type="text"
                 inputMode="numeric"
-                defaultValue={student.guardianContact?.phone ?? ''}
+                defaultValue={initialFormValues.guardian_phone}
                 placeholder="010-0000-0000"
                 maxLength={13}
                 pattern="010-[0-9]{4}-[0-9]{4}"
@@ -366,7 +463,7 @@ export default async function StudentEditPage({ params }: StudentEditPageProps) 
           <div className="mt-2 flex justify-end gap-2">
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-[var(--color-surface)] transition hover:bg-[var(--color-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+              className="btn btn-primary btn-md"
             >
               수정
             </button>

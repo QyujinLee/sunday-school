@@ -42,7 +42,6 @@ export const authOptions: NextAuthOptions = {
           approvalStatus: isAdmin ? TEACHER_APPROVAL_STATUS.APPROVED : TEACHER_APPROVAL_STATUS.PENDING,
         },
         update: {
-          name: user.name ?? undefined,
           ...(isAdmin
             ? {
                 role: TEACHER_ROLE.ADMIN,
@@ -70,12 +69,14 @@ export const authOptions: NextAuthOptions = {
       token.teacherId = teacher.id;
       token.role = teacher.role;
       token.approvalStatus = teacher.approvalStatus;
+      token.name = teacher.name ?? token.name;
 
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.teacherId as string | undefined;
+        session.user.name = token.name as string | undefined;
         session.user.role = token.role as 'ADMIN' | 'TEACHER' | undefined;
         session.user.approvalStatus = token.approvalStatus as 'PENDING' | 'APPROVED' | 'REJECTED' | undefined;
       }

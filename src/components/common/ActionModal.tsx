@@ -45,18 +45,18 @@ export default function ActionModal({ isOpen, title, message, buttons, onClose }
     const variant = button.variant ?? 'outline';
 
     if (tone === 'danger' && variant === 'solid') {
-      return 'inline-flex items-center justify-center rounded-lg border border-[var(--color-danger)] bg-[var(--color-danger)] px-4 py-2 text-sm font-medium text-[var(--color-surface)] transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-danger)] focus-visible:ring-offset-2 disabled:border-[var(--color-border)] disabled:bg-[var(--color-surface)] disabled:text-[var(--color-muted)]';
+      return 'btn btn-danger btn-md';
     }
 
     if (tone === 'danger' && variant === 'outline') {
-      return 'inline-flex items-center justify-center rounded-lg border border-[var(--color-danger)] bg-[var(--color-surface)] px-4 py-2 text-sm font-medium text-[var(--color-danger)] transition hover:bg-[var(--color-danger-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-danger)] focus-visible:ring-offset-2 disabled:border-[var(--color-border)] disabled:text-[var(--color-muted)]';
+      return 'btn btn-danger btn-md';
     }
 
     if (tone === 'primary' && variant === 'solid') {
-      return 'inline-flex items-center justify-center rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-[var(--color-surface)] transition hover:bg-[var(--color-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 disabled:border-[var(--color-border)] disabled:bg-[var(--color-surface)] disabled:text-[var(--color-muted)]';
+      return 'btn btn-primary btn-md';
     }
 
-    return 'inline-flex items-center justify-center rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-4 py-2 text-sm font-medium text-[var(--color-text)] transition hover:bg-[var(--color-surface-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 disabled:border-[var(--color-border)] disabled:text-[var(--color-muted)]';
+    return 'btn btn-secondary btn-md';
   }
 
   if (!isOpen) {

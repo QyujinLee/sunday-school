@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import type { ReactNode } from 'react';
 import { useState } from 'react';
@@ -18,6 +18,8 @@ export default function Providers({ children }: { children: ReactNode }) {
         defaultOptions: {
           queries: {
             staleTime: 60_000,
+            gcTime: 10 * 60_000,
+            retry: 1,
             refetchOnWindowFocus: false,
           },
         },

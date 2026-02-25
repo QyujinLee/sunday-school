@@ -14,7 +14,7 @@ type CollapsiblePanelProps = {
 };
 
 /**
- * 반응형 기본 상태(모바일 접힘, PC 펼침)를 갖는 접기/펼치기 패널을 렌더링한다.
+ * 플랫폼과 관계없이 기본 접힘 상태를 갖는 토글 패널을 렌더링한다.
  */
 export default function CollapsiblePanel({
   title,
@@ -26,11 +26,11 @@ export default function CollapsiblePanel({
   const { isExpanded, toggle } = usePersistentToggle({
     storageKey,
     eventName: `${storageKey}-change`,
-    defaultDesktopExpanded: true,
+    defaultDesktopExpanded: false,
   });
 
   /**
-   * 펼침 상태를 토글한다.
+   * 펼침/접힘 상태를 토글한다.
    */
   function handleToggleExpanded() {
     toggle();

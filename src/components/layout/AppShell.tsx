@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -21,6 +21,56 @@ type AppShellProps = {
   userDisplayName: string;
 };
 
+type ThemeMode = 'light' | 'dark';
+
+const THEME_MODE_STORAGE_KEY = 'theme_mode';
+const THEME_MODE_CHANGE_EVENT_NAME = 'theme-mode-change';
+
+/**
+ * 브라우저 저장소에서 현재 테마 모드를 읽어온다.
+ */
+function getThemeModeSnapshot(): ThemeMode {
+  if (typeof window === 'undefined') {
+    return 'light';
+  }
+
+  return window.localStorage.getItem(THEME_MODE_STORAGE_KEY) === 'dark' ? 'dark' : 'light';
+}
+
+/**
+ * 서버 렌더링 시 사용할 기본 테마 모드를 반환한다.
+ */
+function getThemeModeServerSnapshot(): ThemeMode {
+  return 'light';
+}
+
+/**
+ * 테마 모드 변경 이벤트를 구독한다.
+ */
+function subscribeThemeMode(onStoreChange: () => void): () => void {
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
+
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === THEME_MODE_STORAGE_KEY) {
+      onStoreChange();
+    }
+  };
+
+  const handleThemeModeChange = () => {
+    onStoreChange();
+  };
+
+  window.addEventListener('storage', handleStorage);
+  window.addEventListener(THEME_MODE_CHANGE_EVENT_NAME, handleThemeModeChange);
+
+  return () => {
+    window.removeEventListener('storage', handleStorage);
+    window.removeEventListener(THEME_MODE_CHANGE_EVENT_NAME, handleThemeModeChange);
+  };
+}
+
 /**
  * 메뉴 URL이 현재 경로와 일치하는지 확인한다.
  */
@@ -37,13 +87,8 @@ function isActiveMenu(pathname: string, url: string): boolean {
  */
 export default function AppShell({ children, role, approvalStatus, userDisplayName }: AppShellProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
-
-    return window.localStorage.getItem('theme_mode') === 'dark';
-  });
+  const themeMode = useSyncExternalStore(subscribeThemeMode, getThemeModeSnapshot, getThemeModeServerSnapshot);
+  const isDarkMode = themeMode === 'dark';
   const pathname = usePathname();
   const isSignedIn = Boolean(role);
   const isAdmin = role === 'ADMIN';
@@ -51,10 +96,14 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
   const isHomePage = pathname === '/';
   const shouldShowMenu = isSignedIn && isApproved && !isHomePage;
   const menuItems = useMemo(() => getMenuItemsByRole(role), [role]);
+  const headerDisplayName = userDisplayName
+    ? userDisplayName.endsWith('님')
+      ? userDisplayName
+      : `${userDisplayName}님`
+    : '';
 
   useEffect(() => {
     document.documentElement.classList.toggle('theme-dark', isDarkMode);
-    window.localStorage.setItem('theme_mode', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
   /**
@@ -82,9 +131,9 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
    * 다크모드 상태를 전환하고 사용자 설정을 저장한다.
    */
   const handleToggleDarkMode = () => {
-    setIsDarkMode((previous) => {
-      return !previous;
-    });
+    const nextThemeMode: ThemeMode = isDarkMode ? 'light' : 'dark';
+    window.localStorage.setItem(THEME_MODE_STORAGE_KEY, nextThemeMode);
+    window.dispatchEvent(new Event(THEME_MODE_CHANGE_EVENT_NAME));
   };
 
   return (
@@ -127,7 +176,7 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
                 관리자
               </span>
             ) : null}
-            <span className="hidden sm:inline">{userDisplayName}</span>
+            <span className="hidden sm:inline">{headerDisplayName}</span>
             <div className="hidden md:block">
               <SignOutButton />
             </div>
@@ -135,7 +184,7 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
         ) : (
           <Link
             href="/login"
-            className="inline-flex items-center justify-center rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm font-medium text-[var(--color-text)] transition hover:border-[var(--color-border)] hover:bg-[var(--color-surface-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+            className="btn btn-secondary btn-md"
           >
             로그인
           </Link>
@@ -171,7 +220,7 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
             <button
               type="button"
               onClick={handleToggleDarkMode}
-              className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface-soft)] px-3 py-2 text-xs font-bold text-[var(--color-text)] transition hover:bg-[var(--color-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+              className="btn btn-secondary btn-md mt-auto w-full gap-2"
             >
               <FontAwesomeIcon icon={isDarkMode ? faSun : faMoon} className="h-3.5 w-3.5" />
               {isDarkMode ? '라이트 모드' : '다크 모드'}
@@ -233,7 +282,7 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
               <button
                 type="button"
                 onClick={handleToggleDarkMode}
-                className="mb-2 inline-flex h-8 w-full items-center justify-center gap-1 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-surface-soft)] px-2 text-[8px] font-medium text-[var(--color-text)] transition hover:bg-[var(--color-surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+                className="btn btn-secondary btn-sm mb-2 w-full gap-1"
               >
                 <FontAwesomeIcon icon={isDarkMode ? faSun : faMoon} className="h-2.5 w-2.5" />
                 {isDarkMode ? '라이트 모드' : '다크 모드'}

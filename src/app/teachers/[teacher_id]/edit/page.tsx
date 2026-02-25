@@ -24,6 +24,21 @@ type TeacherEditPageProps = {
   params: Promise<{
     teacher_id: string;
   }>;
+  searchParams?: Promise<{
+    name?: string | string[];
+    phone?: string | string[];
+    birth_date?: string | string[];
+    grade?: string | string[];
+    is_active?: string | string[];
+  }>;
+};
+
+type TeacherEditFormValues = {
+  name: string;
+  phone: string;
+  birth_date: string;
+  grade: string;
+  is_active: boolean;
 };
 
 const teacherUpdateSchema = z.object({
@@ -80,11 +95,72 @@ function serializeInvalidFields(fieldKeys: string[]): string {
 }
 
 /**
+ * 쿼리스트링 값에서 단일 문자열을 추출한다.
+ */
+function getSingleSearchParam(value: string | string[] | undefined): string {
+  return typeof value === 'string' ? value : Array.isArray(value) ? value[0] ?? '' : '';
+}
+
+/**
+ * 교사 수정 폼 기본값을 생성한다.
+ */
+function buildFormValues(
+  searchParams: Awaited<TeacherEditPageProps['searchParams']> | undefined,
+  teacher: {
+    name: string | null;
+    phone: string | null;
+    birthDate: Date | null;
+    grade: string | null;
+    isActive: boolean;
+  },
+): TeacherEditFormValues {
+  const isActiveParamValue = getSingleSearchParam(searchParams?.is_active);
+
+  return {
+    name: getSingleSearchParam(searchParams?.name) || teacher.name || '',
+    phone: getSingleSearchParam(searchParams?.phone) || teacher.phone || '',
+    birth_date: getSingleSearchParam(searchParams?.birth_date) || (teacher.birthDate ? formatDateToKoreanYmd(teacher.birthDate) : ''),
+    grade: getSingleSearchParam(searchParams?.grade) || teacher.grade || '',
+    is_active: isActiveParamValue ? isActiveParamValue === 'on' : teacher.isActive,
+  };
+}
+
+/**
+ * 교사 수정 폼 입력값을 쿼리스트링으로 직렬화한다.
+ */
+function serializeFormValuesToQueryString(formValues: TeacherEditFormValues): string {
+  const searchParams = new URLSearchParams();
+
+  if (formValues.name) {
+    searchParams.set('name', formValues.name);
+  }
+
+  if (formValues.phone) {
+    searchParams.set('phone', formValues.phone);
+  }
+
+  if (formValues.birth_date) {
+    searchParams.set('birth_date', formValues.birth_date);
+  }
+
+  if (formValues.grade) {
+    searchParams.set('grade', formValues.grade);
+  }
+
+  if (formValues.is_active) {
+    searchParams.set('is_active', 'on');
+  }
+
+  return searchParams.toString();
+}
+
+/**
  * 교사 정보 수정 페이지를 렌더링한다.
  */
-export default async function TeacherEditPage({ params }: TeacherEditPageProps) {
+export default async function TeacherEditPage({ params, searchParams }: TeacherEditPageProps) {
   const session = await getServerSession(authOptions);
   const { teacher_id: teacherId } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const isAdmin = session?.user?.role === 'ADMIN';
   const isSelf = session?.user?.id === teacherId;
 
@@ -114,6 +190,7 @@ export default async function TeacherEditPage({ params }: TeacherEditPageProps) 
     redirect('/teachers');
   }
   const initialTeacherIsActive = teacher.isActive;
+  const initialFormValues = buildFormValues(resolvedSearchParams, teacher);
 
   /**
    * 교사 정보를 수정하고 목록 페이지로 이동한다.
@@ -128,6 +205,15 @@ export default async function TeacherEditPage({ params }: TeacherEditPageProps) 
     if (!sessionForAction?.user?.id || (!isAdminForAction && !isSelfForAction)) {
       redirect('/teachers?error_code=forbidden');
     }
+
+    const rawFormValues: TeacherEditFormValues = {
+      name: typeof formData.get('name') === 'string' ? (formData.get('name') as string) : '',
+      phone: typeof formData.get('phone') === 'string' ? (formData.get('phone') as string) : '',
+      birth_date: typeof formData.get('birth_date') === 'string' ? (formData.get('birth_date') as string) : '',
+      grade: typeof formData.get('grade') === 'string' ? (formData.get('grade') as string) : '',
+      is_active: isAdminForAction ? formData.get('is_active') === 'on' : initialTeacherIsActive,
+    };
+    const serializedFormValues = serializeFormValuesToQueryString(rawFormValues);
 
     const parsedResult = teacherUpdateSchema.safeParse({
       name: normalizeTextValue(formData.get('name')),
@@ -146,14 +232,14 @@ export default async function TeacherEditPage({ params }: TeacherEditPageProps) 
         ? `error_code=invalid_input&error_fields=${encodeURIComponent(serializedInvalidFields)}`
         : 'error_code=invalid_input';
 
-      redirect(`/teachers/${teacherId}/edit?${errorQueryString}`);
+      redirect(`/teachers/${teacherId}/edit?${errorQueryString}${serializedFormValues ? `&${serializedFormValues}` : ''}`);
     }
 
     const teacherInput = parsedResult.data;
     const birthDate = teacherInput.birth_date ? new Date(`${teacherInput.birth_date}T00:00:00`) : null;
 
     if (birthDate && Number.isNaN(birthDate.getTime())) {
-      redirect(`/teachers/${teacherId}/edit?error_code=invalid_birth_date`);
+      redirect(`/teachers/${teacherId}/edit?error_code=invalid_birth_date${serializedFormValues ? `&${serializedFormValues}` : ''}`);
     }
 
     try {
@@ -168,7 +254,7 @@ export default async function TeacherEditPage({ params }: TeacherEditPageProps) 
         },
       });
     } catch {
-      redirect(`/teachers/${teacherId}/edit?error_code=server_error`);
+      redirect(`/teachers/${teacherId}/edit?error_code=server_error${serializedFormValues ? `&${serializedFormValues}` : ''}`);
     }
 
     redirect('/teachers?success_code=teacher_updated');
@@ -182,7 +268,7 @@ export default async function TeacherEditPage({ params }: TeacherEditPageProps) 
           <h1 className="text-2xl font-bold text-[var(--color-text)]">교사 정보 수정</h1>
           <Link
             href="/teachers"
-            className="inline-flex items-center justify-center rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm font-medium text-[var(--color-text)] transition hover:border-[var(--color-border)] hover:bg-[var(--color-surface-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+            className="btn btn-secondary btn-md"
           >
             목록으로
           </Link>
@@ -199,7 +285,7 @@ export default async function TeacherEditPage({ params }: TeacherEditPageProps) 
                 name="name"
                 type="text"
                 required
-                defaultValue={teacher.name ?? ''}
+                defaultValue={initialFormValues.name}
                 className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)]"
               />
             </label>
@@ -223,7 +309,7 @@ export default async function TeacherEditPage({ params }: TeacherEditPageProps) 
                 name="phone"
                 type="text"
                 inputMode="numeric"
-                defaultValue={teacher.phone ?? ''}
+                defaultValue={initialFormValues.phone}
                 placeholder="010-0000-0000"
                 maxLength={13}
                 pattern="010-[0-9]{4}-[0-9]{4}"
@@ -237,7 +323,7 @@ export default async function TeacherEditPage({ params }: TeacherEditPageProps) 
               <input
                 name="birth_date"
                 type="date"
-                defaultValue={teacher.birthDate ? formatDateToKoreanYmd(teacher.birthDate) : ''}
+                defaultValue={initialFormValues.birth_date}
                 className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)]"
               />
             </label>
@@ -248,7 +334,7 @@ export default async function TeacherEditPage({ params }: TeacherEditPageProps) 
               <span className="text-sm font-medium text-[var(--color-text)]">담당 학년</span>
               <select
                 name="grade"
-                defaultValue={teacher.grade ?? ''}
+                defaultValue={initialFormValues.grade}
                 className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)]"
               >
                 <option value="" disabled>
@@ -266,7 +352,7 @@ export default async function TeacherEditPage({ params }: TeacherEditPageProps) 
               <input
                 name="is_active"
                 type="checkbox"
-                defaultChecked={teacher.isActive}
+                defaultChecked={initialFormValues.is_active}
                 disabled={!isAdmin}
                 className="h-4 w-4 rounded border border-[var(--color-border-strong)]"
               />
@@ -278,7 +364,7 @@ export default async function TeacherEditPage({ params }: TeacherEditPageProps) 
           <div className="mt-2 flex justify-end">
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-[var(--color-surface)] transition hover:bg-[var(--color-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+              className="btn btn-primary btn-md"
             >
               수정
             </button>

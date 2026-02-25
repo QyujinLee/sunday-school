@@ -98,12 +98,76 @@ interface FieldLabelProps {
   showOptional?: boolean;
 }
 
+type StudentCreatePageProps = {
+  searchParams?: Promise<{
+    name?: string | string[];
+    gender?: string | string[];
+    birth_date?: string | string[];
+    address?: string | string[];
+    phone?: string | string[];
+    guardian_name?: string | string[];
+    guardian_relationship?: string | string[];
+    guardian_phone?: string | string[];
+  }>;
+};
+
+type StudentCreateFormValues = {
+  name: string;
+  gender: string;
+  birth_date: string;
+  address: string;
+  phone: string;
+  guardian_name: string;
+  guardian_relationship: string;
+  guardian_phone: string;
+};
+
 /**
  * 검증 실패 필드 키 목록을 쿼리스트링으로 직렬화한다.
  */
 function serializeInvalidFields(fieldKeys: string[]): string {
   const uniqueKeys = Array.from(new Set(fieldKeys)).filter((fieldKey) => FIELD_LABEL_BY_KEY[fieldKey]);
   return uniqueKeys.join(',');
+}
+
+/**
+ * 쿼리스트링 값에서 단일 문자열 값을 읽어온다.
+ */
+function getSingleSearchParam(value: string | string[] | undefined): string {
+  return typeof value === 'string' ? value : Array.isArray(value) ? value[0] ?? '' : '';
+}
+
+/**
+ * 학생 등록 폼 기본값 객체를 생성한다.
+ */
+function buildFormValuesFromSearchParams(
+  searchParams: Awaited<StudentCreatePageProps['searchParams']> | undefined,
+): StudentCreateFormValues {
+  return {
+    name: getSingleSearchParam(searchParams?.name),
+    gender: getSingleSearchParam(searchParams?.gender),
+    birth_date: getSingleSearchParam(searchParams?.birth_date),
+    address: getSingleSearchParam(searchParams?.address),
+    phone: getSingleSearchParam(searchParams?.phone),
+    guardian_name: getSingleSearchParam(searchParams?.guardian_name),
+    guardian_relationship: getSingleSearchParam(searchParams?.guardian_relationship),
+    guardian_phone: getSingleSearchParam(searchParams?.guardian_phone),
+  };
+}
+
+/**
+ * 학생 등록 폼 입력값을 쿼리스트링으로 직렬화한다.
+ */
+function serializeFormValuesToQueryString(formValues: StudentCreateFormValues): string {
+  const searchParams = new URLSearchParams();
+
+  Object.entries(formValues).forEach(([key, value]) => {
+    if (value) {
+      searchParams.set(key, value);
+    }
+  });
+
+  return searchParams.toString();
 }
 
 /**
@@ -125,7 +189,10 @@ function FieldLabel({ label, required = false, showOptional = false }: FieldLabe
 /**
  * 학생 등록 페이지를 렌더링한다.
  */
-export default function StudentCreatePage() {
+export default async function StudentCreatePage({ searchParams }: StudentCreatePageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const initialFormValues = buildFormValuesFromSearchParams(resolvedSearchParams);
+
   /**
    * 학생/보호자 정보를 생성하고 목록 페이지로 이동한다.
    */
@@ -142,6 +209,21 @@ export default function StudentCreatePage() {
       guardian_relationship: normalizeTextValue(formData.get('guardian_relationship')),
       guardian_phone: normalizePhoneValue(formData.get('guardian_phone')),
     };
+    const rawFormValues: StudentCreateFormValues = {
+      name: typeof formData.get('name') === 'string' ? (formData.get('name') as string) : '',
+      gender: typeof formData.get('gender') === 'string' ? (formData.get('gender') as string) : '',
+      birth_date: typeof formData.get('birth_date') === 'string' ? (formData.get('birth_date') as string) : '',
+      address: typeof formData.get('address') === 'string' ? (formData.get('address') as string) : '',
+      phone: typeof formData.get('phone') === 'string' ? (formData.get('phone') as string) : '',
+      guardian_name: typeof formData.get('guardian_name') === 'string' ? (formData.get('guardian_name') as string) : '',
+      guardian_relationship:
+        typeof formData.get('guardian_relationship') === 'string'
+          ? (formData.get('guardian_relationship') as string)
+          : '',
+      guardian_phone:
+        typeof formData.get('guardian_phone') === 'string' ? (formData.get('guardian_phone') as string) : '',
+    };
+    const serializedFormValues = serializeFormValuesToQueryString(rawFormValues);
 
     const parsedResult = studentCreateSchema.safeParse({
       ...normalizedInput,
@@ -154,7 +236,7 @@ export default function StudentCreatePage() {
         ? `error_code=invalid_input&error_fields=${encodeURIComponent(serializedInvalidFields)}`
         : 'error_code=invalid_input';
 
-      redirect(`/students/new?${errorQueryString}`);
+      redirect(`/students/new?${errorQueryString}${serializedFormValues ? `&${serializedFormValues}` : ''}`);
     }
 
     const studentInput = parsedResult.data;
@@ -164,7 +246,7 @@ export default function StudentCreatePage() {
     );
 
     if (Number.isNaN(birthDate.getTime())) {
-      redirect('/students/new?error_code=invalid_birth_date');
+      redirect(`/students/new?error_code=invalid_birth_date${serializedFormValues ? `&${serializedFormValues}` : ''}`);
     }
 
     try {
@@ -187,7 +269,7 @@ export default function StudentCreatePage() {
         },
       });
     } catch {
-      redirect('/students/new?error_code=server_error');
+      redirect(`/students/new?error_code=server_error${serializedFormValues ? `&${serializedFormValues}` : ''}`);
     }
 
     redirect('/students/new?success_code=student_created');
@@ -201,7 +283,7 @@ export default function StudentCreatePage() {
           <h1 className="text-2xl font-bold text-[var(--color-text)]">학생 등록</h1>
           <Link
             href="/students"
-            className="inline-flex items-center justify-center rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm font-medium text-[var(--color-text)] transition hover:border-[var(--color-border)] hover:bg-[var(--color-surface-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+            className="btn btn-secondary btn-md"
           >
             목록으로
           </Link>
@@ -215,6 +297,7 @@ export default function StudentCreatePage() {
                 name="name"
                 type="text"
                 required
+                defaultValue={initialFormValues.name}
                 className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)]"
               />
             </label>
@@ -224,7 +307,7 @@ export default function StudentCreatePage() {
               <select
                 name="gender"
                 required
-                defaultValue=""
+                defaultValue={initialFormValues.gender}
                 className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)]"
               >
                 <option value="" disabled>
@@ -241,6 +324,7 @@ export default function StudentCreatePage() {
                 name="birth_date"
                 type="date"
                 required
+                defaultValue={initialFormValues.birth_date}
                 className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)]"
               />
             </label>
@@ -253,6 +337,7 @@ export default function StudentCreatePage() {
                 name="address"
                 type="text"
                 required
+                defaultValue={initialFormValues.address}
                 className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)]"
               />
             </label>
@@ -268,6 +353,7 @@ export default function StudentCreatePage() {
                 maxLength={13}
                 pattern="010-[0-9]{4}-[0-9]{4}"
                 title="010-0000-0000 형식으로 입력해 주세요."
+                defaultValue={initialFormValues.phone}
                 className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)]"
               />
             </label>
@@ -279,6 +365,7 @@ export default function StudentCreatePage() {
               <input
                 name="guardian_name"
                 type="text"
+                defaultValue={initialFormValues.guardian_name}
                 className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)]"
               />
             </label>
@@ -287,7 +374,7 @@ export default function StudentCreatePage() {
               <FieldLabel label="관계" />
               <select
                 name="guardian_relationship"
-                defaultValue=""
+                defaultValue={initialFormValues.guardian_relationship}
                 className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)]"
               >
                 <option value="" disabled>선택</option>
@@ -310,6 +397,7 @@ export default function StudentCreatePage() {
                 maxLength={13}
                 pattern="010-[0-9]{4}-[0-9]{4}"
                 title="010-0000-0000 형식으로 입력해 주세요."
+                defaultValue={initialFormValues.guardian_phone}
                 className="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] outline-none transition focus:border-[var(--color-primary)]"
               />
             </label>
@@ -318,7 +406,7 @@ export default function StudentCreatePage() {
           <div className="mt-2 flex justify-end">
             <button
               type="submit"
-              className="inline-flex items-center justify-center rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-[var(--color-surface)] transition hover:bg-[var(--color-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+              className="btn btn-primary btn-md"
             >
               등록
             </button>

@@ -1,14 +1,12 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 
 import { prisma } from '@/lib/prisma';
+import { sortStudentsByGradeDescThenName } from '@/lib/student-sort';
 import { formatDateToKoreanYmd } from '@/utils/date';
+import CollapsiblePanel from './CollapsiblePanel';
 import StudentsResultToast from './StudentsResultToast';
 
 const STUDENT_GRADE_TABS = ['전체', '6학년', '5학년', '4학년', '3학년', '2학년', '1학년', '유아부'] as const;
-const KOREAN_NAME_COLLATOR = new Intl.Collator('ko-KR', {
-  numeric: true,
-  sensitivity: 'base',
-});
 type StudentGradeTab = (typeof STUDENT_GRADE_TABS)[number];
 
 type StudentsPageProps = {
@@ -76,6 +74,20 @@ function getGenderLabel(gender: 'MALE' | 'FEMALE'): string {
 }
 
 /**
+ * 학년 표시 문자열을 반환한다. 유아부는 연 나이를 함께 표시한다.
+ */
+function getGradeDisplayLabel(student: Pick<StudentRow, 'gradeLabel' | 'birthDate'>): string {
+  if (student.gradeLabel !== '유아부') {
+    return student.gradeLabel;
+  }
+
+  const currentYear = new Date().getFullYear();
+  const yearlyAge = Math.max(0, currentYear - student.birthDate.getFullYear());
+
+  return `유아부 (연 ${yearlyAge}세)`;
+}
+
+/**
  * 보호자 관계 코드를 한글 라벨로 변환한다.
  */
 function getRelationshipLabel(relationship: 'FATHER' | 'MOTHER' | 'GRANDFATHER' | 'GRANDMOTHER' | 'ETC'): string {
@@ -138,6 +150,13 @@ function filterStudentsByGradeTab(students: StudentRow[], selectedGradeTab: Stud
 }
 
 /**
+ * 선택된 학년 탭 기준으로 학생 목록 정렬을 적용한다.
+ */
+function sortStudentsBySelectedGradeTab(students: StudentRow[]): StudentRow[] {
+  return sortStudentsByGradeDescThenName(students);
+}
+
+/**
  * 학생 모바일 카드 목록을 렌더링한다.
  */
 function StudentCardList({ students }: { students: StudentRow[] }) {
@@ -155,7 +174,7 @@ function StudentCardList({ students }: { students: StudentRow[] }) {
         <li key={student.id} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
           <div className="mb-2 flex items-center justify-between gap-2">
             <p className="text-base font-semibold text-[var(--color-text)]">{student.name}</p>
-            <p className="text-sm font-medium text-[var(--color-primary)]">{student.gradeLabel}</p>
+            <p className="text-sm font-medium text-[var(--color-primary)]">{getGradeDisplayLabel(student)}</p>
           </div>
 
           <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
@@ -182,7 +201,7 @@ function StudentCardList({ students }: { students: StudentRow[] }) {
           <div className="mt-3 flex justify-end">
             <Link
               href={`/students/${student.id}/edit`}
-              className="inline-flex items-center justify-center rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-1.5 text-xs font-medium text-[var(--color-text)] transition hover:border-[var(--color-border)] hover:bg-[var(--color-surface-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+              className="btn btn-secondary btn-sm"
             >
               수정
             </Link>
@@ -209,7 +228,7 @@ function StudentsTableRows({ students }: { students: StudentRow[] }) {
 
   return students.map((student) => (
     <tr key={student.id} className="border-t border-[var(--color-border)]">
-      <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{student.gradeLabel}</td>
+      <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{getGradeDisplayLabel(student)}</td>
       <td className="px-2 py-2 text-sm font-medium text-[var(--color-text)]">{student.name}</td>
       <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{getGenderLabel(student.gender)}</td>
       <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{formatBirthDate(student.birthDate)}</td>
@@ -224,7 +243,7 @@ function StudentsTableRows({ students }: { students: StudentRow[] }) {
       <td className="px-2 py-2 text-center">
         <Link
           href={`/students/${student.id}/edit`}
-          className="inline-flex items-center justify-center rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-1.5 text-xs font-medium text-[var(--color-text)] transition hover:border-[var(--color-border)] hover:bg-[var(--color-surface-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
+          className="btn btn-secondary btn-sm"
         >
           수정
         </Link>
@@ -297,11 +316,13 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
       ...student,
       gradeLabel: getGradeLabelByBirthDate(student.birthDate),
     }))
-    .sort((a, b) => KOREAN_NAME_COLLATOR.compare(a.name.trim(), b.name.trim()));
+    .sort((a, b) => a.name.localeCompare(b.name, 'ko-KR'));
 
   const graduateStudents = studentsWithGrade.filter((student) => isGraduateByCurrentDate(student.birthDate));
   const activeStudents = studentsWithGrade.filter((student) => !isGraduateByCurrentDate(student.birthDate));
-  const filteredStudents = filterStudentsByGradeTab(activeStudents, selectedGradeTab);
+  const filteredStudents = sortStudentsBySelectedGradeTab(
+    filterStudentsByGradeTab(activeStudents, selectedGradeTab),
+  );
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6">
@@ -311,8 +332,7 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
           <h1 className="text-2xl font-bold text-[var(--color-text)]">학생 관리</h1>
           <Link
             href="/students/new"
-            className="inline-flex items-center justify-center rounded-lg border border-[var(--color-primary)] bg-[var(--color-primary)] px-3 py-2 text-sm font-medium text-[var(--color-surface)] transition hover:bg-[var(--color-primary-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
-            style={{ color: 'var(--color-surface)' }}
+            className="btn btn-primary btn-md"
           >
             학생 등록
           </Link>
@@ -347,19 +367,19 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
         </div>
       </section>
 
-      <section className="mx-auto mt-6 w-full max-w-5xl rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-6">
-        <h2 className="text-xl font-bold text-[var(--color-text)]">졸업생</h2>
-        <p className="mt-2 text-sm text-[var(--color-muted)]">
-          현재 날짜 기준 만 14세 이상이고 3월 이후인 학생은 자동으로 졸업생 목록으로 이동합니다.
-        </p>
-
-        <div className="mt-5 sm:hidden">
+      <CollapsiblePanel
+        title="졸업생"
+        description="현재 날짜 기준 만 14세 이상이고 3월 이후인 학생은 자동으로 졸업생 목록으로 이동합니다."
+        storageKey="students_graduates_collapsible"
+      >
+        <div className="sm:hidden">
           <StudentCardList students={graduateStudents} />
         </div>
-        <div className="mt-5 hidden sm:block">
+        <div className="hidden sm:block">
           <StudentsTable students={graduateStudents} />
         </div>
-      </section>
+      </CollapsiblePanel>
     </main>
   );
 }
+
