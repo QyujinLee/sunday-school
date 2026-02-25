@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import Link from 'next/link';
 import { AttendanceStatus, Gender } from '@prisma/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -334,7 +335,7 @@ export default function AttendanceInteractiveSection({
             const isSelected = selectedTab === tab.key;
 
             return (
-              <a
+              <Link
                 key={tab.key}
                 href={`/attendance?attendance_tab=${tab.key}`}
                 className={`inline-flex items-center justify-center rounded-full border px-3 py-1.5 text-sm font-medium transition ${
@@ -345,7 +346,7 @@ export default function AttendanceInteractiveSection({
                 aria-current={isSelected ? 'page' : undefined}
               >
                 {tab.label}
-              </a>
+              </Link>
             );
           })}
         </nav>
