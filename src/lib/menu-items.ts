@@ -3,6 +3,7 @@ import {
   faAddressBook,
   faCalendarCheck,
   faCalendarDays,
+  faChartLine,
   faClipboardList,
   faFolderOpen,
   faGamepad,
@@ -20,6 +21,7 @@ export type MenuItem = {
 };
 
 const COMMON_MENU_ITEMS: MenuItem[] = [
+  { label: '대시보드', icon: faChartLine, url: '/dashboard' },
   { label: '출석 관리', icon: faCalendarCheck, url: '/attendance' },
   { label: '학생 관리', icon: faUserGraduate, url: '/students' },
   { label: '교사 정보', icon: faAddressBook, url: '/teachers' },

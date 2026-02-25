@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { sortStudentsByGradeDescThenName } from '@/lib/student-sort';
 import { formatDateToKoreanYmd } from '@/utils/date';
 import CollapsiblePanel from './CollapsiblePanel';
+import StudentAttendanceLedgerButton from './StudentAttendanceLedgerButton';
+import StudentDetailButton from './StudentDetailButton';
 import StudentsResultToast from './StudentsResultToast';
 
 const STUDENT_GRADE_TABS = ['전체', '6학년', '5학년', '4학년', '3학년', '2학년', '1학년', '유아부'] as const;
@@ -199,9 +201,10 @@ function StudentCardList({ students }: { students: StudentRow[] }) {
           </dl>
 
           <div className="mt-3 flex justify-end">
+            <StudentAttendanceLedgerButton studentId={student.id} />
             <Link
               href={`/students/${student.id}/edit`}
-              className="btn btn-secondary btn-sm"
+              className="btn btn-secondary btn-sm ml-2"
             >
               수정
             </Link>
@@ -219,7 +222,7 @@ function StudentsTableRows({ students }: { students: StudentRow[] }) {
   if (students.length === 0) {
     return (
       <tr>
-        <td colSpan={11} className="px-2 py-2 text-center text-sm text-[var(--color-muted)]">
+        <td colSpan={7} className="px-2 py-2 text-center text-sm text-[var(--color-muted)]">
           표시할 학생이 없습니다.
         </td>
       </tr>
@@ -232,21 +235,32 @@ function StudentsTableRows({ students }: { students: StudentRow[] }) {
       <td className="px-2 py-2 text-sm font-medium text-[var(--color-text)]">{student.name}</td>
       <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{getGenderLabel(student.gender)}</td>
       <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{formatBirthDate(student.birthDate)}</td>
-      <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{student.address}</td>
-      <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{student.phone ?? '-'}</td>
       <td className="px-2 py-2 text-sm font-medium text-[var(--color-text)]">{student.currentTalent}</td>
-      <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{student.guardianContact?.name ?? '-'}</td>
-      <td className="px-2 py-2 text-sm text-[var(--color-muted)]">
-        {student.guardianContact?.relationship ? getRelationshipLabel(student.guardianContact.relationship) : '-'}
-      </td>
       <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{student.guardianContact?.phone ?? '-'}</td>
       <td className="px-2 py-2 text-center">
-        <Link
-          href={`/students/${student.id}/edit`}
-          className="btn btn-secondary btn-sm"
-        >
-          수정
-        </Link>
+        <div className="flex items-center justify-center gap-2">
+          <StudentDetailButton
+            name={student.name}
+            gradeLabel={getGradeDisplayLabel(student)}
+            genderLabel={getGenderLabel(student.gender)}
+            birthDateText={formatBirthDate(student.birthDate)}
+            address={student.address}
+            phone={student.phone ?? '-'}
+            currentTalent={student.currentTalent}
+            guardianName={student.guardianContact?.name ?? '-'}
+            relationshipLabel={
+              student.guardianContact?.relationship ? getRelationshipLabel(student.guardianContact.relationship) : '-'
+            }
+            guardianPhone={student.guardianContact?.phone ?? '-'}
+          />
+          <StudentAttendanceLedgerButton studentId={student.id} />
+          <Link
+            href={`/students/${student.id}/edit`}
+            className="btn btn-secondary btn-sm"
+          >
+            수정
+          </Link>
+        </div>
       </td>
     </tr>
   ));
@@ -266,11 +280,7 @@ function StudentsTable({ students }: { students: StudentRow[] }) {
               <th className="px-2 py-2 text-sm font-semibold text-[var(--color-text)]">이름</th>
               <th className="px-2 py-2 text-sm font-semibold text-[var(--color-text)]">성별</th>
               <th className="px-2 py-2 text-sm font-semibold text-[var(--color-text)]">생일</th>
-              <th className="px-2 py-2 text-sm font-semibold text-[var(--color-text)]">주소</th>
-              <th className="px-2 py-2 text-sm font-semibold text-[var(--color-text)]">전화번호</th>
               <th className="px-2 py-2 text-sm font-semibold text-[var(--color-text)]">달란트</th>
-              <th className="px-2 py-2 text-sm font-semibold text-[var(--color-text)]">보호자 성함</th>
-              <th className="px-2 py-2 text-sm font-semibold text-[var(--color-text)]">관계</th>
               <th className="px-2 py-2 text-sm font-semibold text-[var(--color-text)]">보호자 전화번호</th>
               <th className="px-2 py-2 text-sm font-semibold text-[var(--color-text)]">관리</th>
             </tr>

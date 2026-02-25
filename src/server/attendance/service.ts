@@ -454,6 +454,125 @@ export async function getAttendanceInteractiveData(selectedTab: AttendanceTabKey
     talentLogs,
   };
 }
+
+type AttendanceLedgerWeek = {
+  date: string;
+  label: string;
+};
+
+type AttendanceLedgerStudentRow = {
+  id: string;
+  name: string;
+  gradeLabel: StudentRow['gradeLabel'];
+  attendanceByDate: Record<string, AttendanceStatus>;
+};
+
+type AttendanceLedgerPageData = {
+  schoolYearStart: number;
+  schoolYearEnd: number;
+  weeks: AttendanceLedgerWeek[];
+  students: AttendanceLedgerStudentRow[];
+};
+
+/**
+ * 출석 관리에서 사용하는 기준 주차(금주 일요일, 차주 일요일)를 반환한다.
+ */
+export function getAttendancePeriodInfo(baseDate: Date = new Date()): {
+  attendanceDate: Date;
+  nextSundayDate: Date;
+} {
+  const attendanceDate = getCurrentSundayKstDate(baseDate);
+  const nextSundayDate = getNextSundayKstDate(attendanceDate);
+
+  return {
+    attendanceDate,
+    nextSundayDate,
+  };
+}
+
+/**
+ * 출석부 페이지에 필요한 올해 주차/학생별 출석 상태 데이터를 조회한다.
+ */
+export async function getAttendanceLedgerPageData(baseDate: Date = new Date()): Promise<AttendanceLedgerPageData> {
+  const attendanceDate = getCurrentSundayKstDate(baseDate);
+  const attendanceYmd = formatDateToKoreanYmd(attendanceDate);
+  const currentYear = Number(attendanceYmd.slice(0, 4));
+  const currentMonth = Number(attendanceYmd.slice(5, 7));
+  const schoolYearStart = currentMonth >= 3 ? currentYear : currentYear - 1;
+  const schoolYearEnd = schoolYearStart + 1;
+  const firstSunday = getFirstSundayOfMonthKst(schoolYearStart, 3);
+  const lastSunday = getLastSundayOfMonthKst(schoolYearEnd, 2);
+  const weeks = getSundaySeriesBetween(firstSunday, lastSunday).map((weekDate) => {
+    const date = formatDateToKoreanYmd(weekDate);
+
+    return {
+      date,
+      label: date.slice(5).replace('-', '.'),
+    };
+  });
+
+  const students = await prisma.student.findMany({
+    orderBy: { name: 'asc' },
+    select: {
+      id: true,
+      name: true,
+      birthDate: true,
+    },
+  });
+
+  const attendances = await prisma.attendance.findMany({
+    where: {
+      attendanceDate: {
+        gte: firstSunday,
+        lte: lastSunday,
+      },
+    },
+    select: {
+      studentId: true,
+      attendanceDate: true,
+      status: true,
+    },
+  });
+
+  const attendanceByStudentAndDate = new Map<string, AttendanceStatus>();
+
+  attendances.forEach((attendance) => {
+    attendanceByStudentAndDate.set(
+      `${attendance.studentId}:${formatDateToKoreanYmd(attendance.attendanceDate)}`,
+      attendance.status,
+    );
+  });
+
+  const sortedStudents = sortStudentsByGradeDescThenName(
+    students.map((student) => ({
+      ...student,
+      gradeLabel: getGradeLabelByBirthDate(student.birthDate),
+    })),
+  );
+
+  return {
+    schoolYearStart,
+    schoolYearEnd,
+    weeks,
+    students: sortedStudents.map((student) => {
+      const attendanceByDate = Object.fromEntries(
+        weeks.map((week) => {
+          const attendanceStatus =
+            attendanceByStudentAndDate.get(`${student.id}:${week.date}`) ?? AttendanceStatus.ABSENT;
+
+          return [week.date, attendanceStatus];
+        }),
+      );
+
+      return {
+        id: student.id,
+        name: student.name,
+        gradeLabel: student.gradeLabel,
+        attendanceByDate,
+      };
+    }),
+  };
+}
 export async function updateStudentTalent(studentId: string, amount: number, teacherId: string) {
   await runSerializableTransactionWithRetry(() =>
     prisma.$transaction(
@@ -481,6 +600,37 @@ export async function updateStudentTalent(studentId: string, amount: number, tea
       },
     ),
   );
+}
+
+/**
+ * 시작 주차부터 종료 주차까지의 일요일 목록(양 끝 포함)을 반환한다.
+ */
+function getSundaySeriesBetween(startSunday: Date, endSunday: Date): Date[] {
+  const result: Date[] = [];
+  const cursor = new Date(startSunday);
+
+  while (cursor <= endSunday) {
+    result.push(new Date(cursor));
+    cursor.setUTCDate(cursor.getUTCDate() + 7);
+  }
+
+  return result;
+}
+
+/**
+ * 특정 연/월의 첫 번째 일요일(00:00, KST 기준)을 반환한다.
+ */
+function getFirstSundayOfMonthKst(year: number, month: number): Date {
+  const firstDay = new Date(`${year}-${String(month).padStart(2, '0')}-01T00:00:00+09:00`);
+  const firstDayWeekIndex = getKoreanWeekdayIndex(firstDay);
+
+  if (firstDayWeekIndex === 0) {
+    return firstDay;
+  }
+
+  const firstSunday = new Date(firstDay);
+  firstSunday.setUTCDate(firstSunday.getUTCDate() + (7 - firstDayWeekIndex));
+  return firstSunday;
 }
 
 /**
@@ -876,4 +1026,3 @@ function filterStudentsByTab(students: StudentRow[], selectedTab: AttendanceTabK
 
   return students.filter((student) => student.gradeLabel === gradeLabelByTab[selectedTab]);
 }
-
