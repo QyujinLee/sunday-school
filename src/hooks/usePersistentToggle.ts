@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useCallback, useSyncExternalStore } from 'react';
 
@@ -11,7 +11,7 @@ type UsePersistentToggleOptions = {
 };
 
 /**
- * sessionStorage 기반 토글 상태(펼침/접힘)를 구독하고 갱신한다.
+ * sessionStorage 기반 토글 상태(접힘/펼침)를 구독하고 갱신한다.
  */
 export function usePersistentToggle({
   storageKey,
@@ -51,9 +51,11 @@ export function usePersistentToggle({
           onStoreChange();
         }
       };
+
       const handleToggleChange = () => {
         onStoreChange();
       };
+
       const handleViewportChange = () => {
         if (defaultDesktopExpanded && !window.sessionStorage.getItem(storageKey)) {
           onStoreChange();

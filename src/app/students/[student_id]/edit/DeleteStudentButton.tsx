@@ -49,11 +49,7 @@ export default function DeleteStudentButton({ deleteFormId }: DeleteStudentButto
 
   return (
     <>
-      <button
-        type="button"
-        onClick={handleOpenModal}
-        className="btn btn-danger btn-md"
-      >
+      <button type="button" onClick={handleOpenModal} className="btn btn-danger btn-md">
         삭제
       </button>
 

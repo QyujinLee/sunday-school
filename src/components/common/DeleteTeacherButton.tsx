@@ -54,12 +54,7 @@ export default function DeleteTeacherButton({ deleteFormId, disabled = false }: 
 
   return (
     <>
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={handleOpenModal}
-        className="btn btn-danger btn-sm h-8"
-      >
+      <button type="button" disabled={disabled} onClick={handleOpenModal} className="btn btn-danger btn-sm h-8">
         삭제
       </button>
 

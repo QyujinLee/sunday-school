@@ -1,5 +1,7 @@
 ﻿import Link from 'next/link';
+import { getServerSession } from 'next-auth';
 
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { sortStudentsByGradeDescThenName } from '@/lib/student-sort';
 import { formatDateToKoreanYmd } from '@/utils/date';
@@ -7,6 +9,7 @@ import CollapsiblePanel from './CollapsiblePanel';
 import StudentAttendanceLedgerButton from './StudentAttendanceLedgerButton';
 import StudentDetailButton from './StudentDetailButton';
 import StudentsResultToast from './StudentsResultToast';
+import TalentResetButton from './TalentResetButton';
 
 const STUDENT_GRADE_TABS = ['전체', '6학년', '5학년', '4학년', '3학년', '2학년', '1학년', '유아부'] as const;
 type StudentGradeTab = (typeof STUDENT_GRADE_TABS)[number];
@@ -300,6 +303,8 @@ function StudentsTable({ students }: { students: StudentRow[] }) {
 export default async function StudentsPage({ searchParams }: StudentsPageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const selectedGradeTab = getSelectedGradeTab(resolvedSearchParams?.grade_tab);
+  const session = await getServerSession(authOptions);
+  const isAdmin = session?.user?.role === 'ADMIN';
 
   const students = await prisma.student.findMany({
     orderBy: { name: 'asc' },
@@ -340,12 +345,15 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
       <section className="mx-auto w-full max-w-5xl rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-2xl font-bold text-[var(--color-text)]">학생 관리</h1>
-          <Link
-            href="/students/new"
-            className="btn btn-primary btn-md"
-          >
-            학생 등록
-          </Link>
+          <div className="flex items-center gap-2">
+            {isAdmin ? <TalentResetButton /> : null}
+            <Link
+              href="/students/new"
+              className="btn btn-primary btn-md"
+            >
+              학생 등록
+            </Link>
+          </div>
         </div>
 
         <nav className="mt-5 flex flex-wrap gap-2" aria-label="학년 필터">
@@ -392,4 +400,5 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
     </main>
   );
 }
+
 

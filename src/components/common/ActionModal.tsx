@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 type ModalButtonTone = 'neutral' | 'primary' | 'danger';
 type ModalButtonVariant = 'outline' | 'solid';
@@ -27,7 +27,7 @@ type ActionModalProps = {
  */
 export default function ActionModal({ isOpen, title, message, buttons, onClose }: ActionModalProps) {
   /**
-   * 버튼 클릭 이후 필요한 콜백과 모달 닫기 동작을 처리한다.
+   * 버튼 클릭 콜백을 실행하고 필요하면 모달을 닫는다.
    */
   function handleButtonClick(button: ActionModalButton) {
     button.onClick?.();
@@ -38,7 +38,7 @@ export default function ActionModal({ isOpen, title, message, buttons, onClose }
   }
 
   /**
-   * 버튼 톤/변형에 따른 클래스 조합을 반환한다.
+   * 버튼 옵션에 따른 스타일 클래스를 반환한다.
    */
   function getButtonClassName(button: ActionModalButton): string {
     const tone = button.tone ?? 'neutral';
@@ -75,7 +75,7 @@ export default function ActionModal({ isOpen, title, message, buttons, onClose }
         <h2 id="action-modal-title" className="text-lg font-semibold text-[var(--color-text)]">
           {title}
         </h2>
-        <p id="action-modal-description" className="mt-2 text-sm text-[var(--color-muted)]">
+        <p id="action-modal-description" className="mt-2 whitespace-pre-line text-sm text-[var(--color-muted)]">
           {message}
         </p>
 

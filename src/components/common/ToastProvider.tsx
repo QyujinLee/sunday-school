@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import type { ReactNode } from 'react';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
@@ -31,7 +31,7 @@ const DEFAULT_TOAST_DURATION_MS = 4000;
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 /**
- * 토스트 변형 종류에 따라 스타일 클래스를 반환한다.
+ * 토스트 종류별 스타일 클래스를 반환한다.
  */
 function getToastVariantClass(variant: ToastVariant): string {
   if (variant === 'error') {
@@ -58,7 +58,7 @@ export default function ToastProvider({ children }: ToastProviderProps) {
   );
 
   /**
-   * 특정 토스트를 제거하고 관련 타이머를 정리한다.
+   * 특정 토스트를 제거하고 타이머를 정리한다.
    */
   const dismissToast = useCallback((toastId: string) => {
     const timeoutId = timeoutMapRef.current.get(toastId);
@@ -81,7 +81,7 @@ export default function ToastProvider({ children }: ToastProviderProps) {
   }, []);
 
   /**
-   * 새 토스트를 하단에 추가하고 자동 제거 타이머를 등록한다.
+   * 새 토스트를 추가하고 자동 제거 타이머를 등록한다.
    */
   const showToast = useCallback((toastInput: ToastInput) => {
     const toastId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -118,6 +118,7 @@ export default function ToastProvider({ children }: ToastProviderProps) {
     }),
     [clearToasts, dismissToast, showToast],
   );
+
   const toastItems = useMemo(
     () =>
       toasts.map((toast, index) => ({
@@ -155,7 +156,7 @@ export default function ToastProvider({ children }: ToastProviderProps) {
                         className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] text-xs text-[var(--color-text)] transition hover:bg-[var(--color-surface-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
                         aria-label="토스트 닫기"
                       >
-                        ×
+                        X
                       </button>
                     </div>
                   </div>

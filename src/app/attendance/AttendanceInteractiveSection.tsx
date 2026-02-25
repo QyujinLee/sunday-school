@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo } from 'react';
 import Link from 'next/link';
@@ -64,9 +64,6 @@ type AdjustTalentInput = {
   amount: number;
 };
 
-/**
- * 출석 인터랙션 데이터를 조회한다.
- */
 async function fetchInteractiveAttendance(selectedTab: AttendanceTabKey): Promise<InteractiveAttendancePayload> {
   const response = await fetch(`/api/attendance/interactive?attendance_tab=${selectedTab}`, {
     method: 'GET',
@@ -81,9 +78,6 @@ async function fetchInteractiveAttendance(selectedTab: AttendanceTabKey): Promis
   return response.json();
 }
 
-/**
- * 출석 상태를 토글한다.
- */
 async function requestToggleAttendance(input: ToggleAttendanceInput): Promise<void> {
   const response = await fetch('/api/attendance/interactive', {
     method: 'POST',
@@ -108,9 +102,6 @@ async function requestToggleAttendance(input: ToggleAttendanceInput): Promise<vo
   }
 }
 
-/**
- * 달란트를 조정한다.
- */
 async function requestAdjustTalent(input: AdjustTalentInput): Promise<void> {
   const response = await fetch('/api/attendance/interactive', {
     method: 'POST',
@@ -130,14 +121,11 @@ async function requestAdjustTalent(input: AdjustTalentInput): Promise<void> {
   }
 }
 
-/**
- * 달란트 변동 기록 모바일 카드 목록을 렌더링한다.
- */
 function TalentLogCardList({ logs }: { logs: SerializableTalentLogRow[] }) {
   if (logs.length === 0) {
     return (
       <p className="rounded-xl border border-[var(--color-border)] px-3 py-3 text-center text-sm text-[var(--color-muted)]">
-        기록된 로그가 없습니다.
+        달란트 변동 기록이 없습니다.
       </p>
     );
   }
@@ -148,13 +136,15 @@ function TalentLogCardList({ logs }: { logs: SerializableTalentLogRow[] }) {
         <li key={log.id} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-semibold text-[var(--color-text)]">{log.student.name}</p>
-            <p className={`text-sm font-semibold ${log.amount >= 0 ? 'text-[var(--color-primary)]' : 'text-[var(--color-danger)]'}`}>
+            <p
+              className={`text-sm font-semibold ${
+                log.amount >= 0 ? 'text-[var(--color-primary)]' : 'text-[var(--color-danger)]'
+              }`}
+            >
               {log.amount > 0 ? `+${log.amount}` : log.amount}
             </p>
           </div>
-          <p className="mt-1 break-all text-xs text-[var(--color-muted)]">
-            처리 교사: {log.teacher?.name ?? log.teacher?.email ?? '-'}
-          </p>
+          <p className="mt-1 break-all text-xs text-[var(--color-muted)]">처리 교사: {log.teacher?.name ?? log.teacher?.email ?? '-'}</p>
           <p className="mt-1 text-xs text-[var(--color-muted)]">
             시각:{' '}
             {new Intl.DateTimeFormat('ko-KR', {
@@ -169,9 +159,6 @@ function TalentLogCardList({ logs }: { logs: SerializableTalentLogRow[] }) {
   );
 }
 
-/**
- * 출석 관리 인터랙션 영역을 렌더링한다.
- */
 export default function AttendanceInteractiveSection({
   selectedTab,
   attendanceDateText,
@@ -219,7 +206,7 @@ export default function AttendanceInteractiveSection({
       if (error instanceof Error && error.message === 'stale_state') {
         showToast({
           variant: 'info',
-          message: '이미 다른 교사가 상태를 변경했습니다.',
+          message: '다른 교사가 먼저 출석 상태를 변경했습니다.',
           description: '최신 상태를 다시 불러옵니다.',
         });
       } else {
@@ -281,9 +268,6 @@ export default function AttendanceInteractiveSection({
   const studentsForTable = data.studentsForTable;
   const talentLogs = data.talentLogs;
 
-  /**
-   * 학년 표시 문자열을 반환한다.
-   */
   function getStudentGradeDisplayLabel(student: SerializableStudentRow): string {
     return getGradeDisplayLabel({
       gradeLabel: student.gradeLabel as never,
@@ -291,9 +275,6 @@ export default function AttendanceInteractiveSection({
     });
   }
 
-  /**
-   * 출석 상태를 토글한다.
-   */
   function handleToggleAttendance(
     studentId: string,
     expectedCurrentStatus: AttendanceStatus,
@@ -306,9 +287,6 @@ export default function AttendanceInteractiveSection({
     });
   }
 
-  /**
-   * 달란트를 조정한다.
-   */
   function handleAdjustTalent(studentId: string, amount: number) {
     adjustTalentMutation.mutate({
       studentId,
@@ -363,12 +341,10 @@ export default function AttendanceInteractiveSection({
                   <li key={student.id} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
                     <div className="mb-2 flex items-center justify-between gap-2">
                       <p className="text-base font-semibold text-[var(--color-text)]">{student.name}</p>
-                      <p className="text-sm font-medium text-[var(--color-primary)]">
-                        {getStudentGradeDisplayLabel(student)}
-                      </p>
+                      <p className="text-sm font-medium text-[var(--color-primary)]">{getStudentGradeDisplayLabel(student)}</p>
                     </div>
                     <p className="text-sm text-[var(--color-muted)]">
-                      금주 추가 달란트:{' '}
+                      금주 추가 달란트{' '}
                       <span className="font-semibold text-[var(--color-text)]">
                         {student.weeklyExtraTalent > 0 ? `+${student.weeklyExtraTalent}` : student.weeklyExtraTalent}
                       </span>
@@ -422,24 +398,18 @@ export default function AttendanceInteractiveSection({
                   <li key={student.id} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
                     <div className="mb-2 flex items-center justify-between gap-2">
                       <p className="text-base font-semibold text-[var(--color-text)]">{student.name}</p>
-                      <p className="text-sm font-medium text-[var(--color-primary)]">
-                        {getStudentGradeDisplayLabel(student)}
-                      </p>
+                      <p className="text-sm font-medium text-[var(--color-primary)]">{getStudentGradeDisplayLabel(student)}</p>
                     </div>
                     <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
                       <dt className="text-[var(--color-muted)]">성별</dt>
                       <dd className="text-right text-[var(--color-text)]">{getGenderLabel(student.gender)}</dd>
                       <dt className="text-[var(--color-muted)]">생일</dt>
-                      <dd className="text-right text-[var(--color-text)]">
-                        {formatDateToKoreanYmd(new Date(student.birthDate))}
-                      </dd>
+                      <dd className="text-right text-[var(--color-text)]">{formatDateToKoreanYmd(new Date(student.birthDate))}</dd>
                     </dl>
                     <div className="mt-3 flex justify-end">
                       <button
                         type="button"
-                        onClick={() =>
-                          handleToggleAttendance(student.id, student.attendanceStatus, nextStatus)
-                        }
+                        onClick={() => handleToggleAttendance(student.id, student.attendanceStatus, nextStatus)}
                         className={getButtonClassName({
                           variant: 'primary',
                           tone: isPresent ? 'danger' : 'success',
@@ -479,9 +449,7 @@ export default function AttendanceInteractiveSection({
                 ) : (
                   studentsForTable.map((student) => (
                     <tr key={student.id} className="border-t border-[var(--color-border)]">
-                      <td className="px-2 py-2 text-sm text-[var(--color-muted)]">
-                        {getStudentGradeDisplayLabel(student)}
-                      </td>
+                      <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{getStudentGradeDisplayLabel(student)}</td>
                       <td className="px-2 py-2 text-sm font-medium text-[var(--color-text)]">{student.name}</td>
                       <td className="px-2 py-2 text-sm font-semibold text-[var(--color-text)]">
                         {student.weeklyExtraTalent > 0 ? `+${student.weeklyExtraTalent}` : student.weeklyExtraTalent}
@@ -549,20 +517,14 @@ export default function AttendanceInteractiveSection({
 
                     return (
                       <tr key={student.id} className="border-t border-[var(--color-border)]">
-                        <td className="px-2 py-2 text-sm text-[var(--color-muted)]">
-                          {getStudentGradeDisplayLabel(student)}
-                        </td>
+                        <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{getStudentGradeDisplayLabel(student)}</td>
                         <td className="px-2 py-2 text-sm font-medium text-[var(--color-text)]">{student.name}</td>
                         <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{getGenderLabel(student.gender)}</td>
-                        <td className="px-2 py-2 text-sm text-[var(--color-muted)]">
-                          {formatDateToKoreanYmd(new Date(student.birthDate))}
-                        </td>
+                        <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{formatDateToKoreanYmd(new Date(student.birthDate))}</td>
                         <td className="px-2 py-2">
                           <button
                             type="button"
-                            onClick={() =>
-                              handleToggleAttendance(student.id, student.attendanceStatus, nextStatus)
-                            }
+                            onClick={() => handleToggleAttendance(student.id, student.attendanceStatus, nextStatus)}
                             className={getButtonClassName({
                               variant: 'primary',
                               tone: isPresent ? 'danger' : 'success',
@@ -586,7 +548,7 @@ export default function AttendanceInteractiveSection({
 
       <CollapsiblePanel
         title="달란트 변동 기록"
-        description="출석을 제외한 금주 추가 달란트 조정 내역이 최신순으로 기록됩니다."
+        description="출석을 제외한 금주 추가 달란트 조정 내역을 최신순으로 기록합니다."
         storageKey="attendance_talent_log_collapsible"
       >
         <div className="sm:hidden">
@@ -607,7 +569,7 @@ export default function AttendanceInteractiveSection({
               {talentLogs.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-2 py-3 text-center text-sm text-[var(--color-muted)]">
-                    기록된 로그가 없습니다.
+                    달란트 변동 기록이 없습니다.
                   </td>
                 </tr>
               ) : (
@@ -621,9 +583,7 @@ export default function AttendanceInteractiveSection({
                     >
                       {log.amount > 0 ? `+${log.amount}` : log.amount}
                     </td>
-                    <td className="px-2 py-2 text-sm text-[var(--color-muted)]">
-                      {log.teacher?.name ?? log.teacher?.email ?? '-'}
-                    </td>
+                    <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{log.teacher?.name ?? log.teacher?.email ?? '-'}</td>
                     <td className="whitespace-nowrap px-2 py-2 text-sm text-[var(--color-muted)]">
                       {new Intl.DateTimeFormat('ko-KR', {
                         dateStyle: 'short',
