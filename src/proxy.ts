@@ -8,6 +8,23 @@ const PENDING_PATH = '/pending';
 const REJECTED_PATH = '/rejected';
 
 /**
+ * NEXTAUTH_URL에서 캐노니컬 Origin을 파싱한다.
+ */
+function getCanonicalOrigin(): URL | null {
+  const nextAuthUrl = process.env.NEXTAUTH_URL;
+
+  if (!nextAuthUrl) {
+    return null;
+  }
+
+  try {
+    return new URL(nextAuthUrl);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * 요청 경로가 항상 공개 접근 가능한 경로인지 확인한다.
  */
 function isAlwaysPublicPath(pathname: string): boolean {
@@ -49,6 +66,19 @@ function getApprovalStatusPath(approvalStatus: unknown): string {
  */
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const canonicalOrigin = getCanonicalOrigin();
+
+  if (canonicalOrigin) {
+    const requestHost = req.nextUrl.host;
+    const requestProtocol = req.nextUrl.protocol;
+    const canonicalHost = canonicalOrigin.host;
+    const canonicalProtocol = canonicalOrigin.protocol;
+
+    if (requestHost !== canonicalHost || requestProtocol !== canonicalProtocol) {
+      const redirectUrl = new URL(req.nextUrl.pathname + req.nextUrl.search, canonicalOrigin);
+      return NextResponse.redirect(redirectUrl, 307);
+    }
+  }
 
   if (pathname.startsWith('/operations')) {
     return NextResponse.redirect(new URL('/signup-management', req.url));
