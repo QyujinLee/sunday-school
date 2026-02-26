@@ -39,7 +39,7 @@ function getToastVariantClass(variant: ToastVariant): string {
   }
 
   if (variant === 'success') {
-    return 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] text-[var(--color-primary)]';
+    return 'border-[var(--color-success)] bg-[var(--color-success-soft)] text-[var(--color-success)]';
   }
 
   return 'border-[var(--color-border-strong)] bg-[var(--color-surface)] text-[var(--color-text)]';

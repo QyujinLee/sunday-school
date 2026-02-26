@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+﻿import type { ReactNode } from 'react';
 
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
@@ -31,8 +31,32 @@ const pretendard = localFont({
 });
 
 export const metadata: Metadata = {
-  title: '주일학교 관리 시스템',
-  description: '주일학교 출석/학생/교사 관리 시스템',
+  metadataBase: new URL(process.env.NEXTAUTH_URL ?? 'http://localhost:3000'),
+  title: {
+    default: '서광 주일학교 관리 시스템',
+    template: '%s | 서광 주일학교 관리 시스템',
+  },
+  description: '주일학교 출석, 학생, 교사, 가입 승인을 한 곳에서 관리하는 시스템입니다.',
+  openGraph: {
+    title: '서광 주일학교 관리 시스템',
+    description: '주일학교 출석, 학생, 교사, 가입 승인을 한 곳에서 관리하는 시스템입니다.',
+    type: 'website',
+    locale: 'ko_KR',
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: '서광 주일학교 관리 시스템',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '서광 주일학교 관리 시스템',
+    description: '주일학교 출석, 학생, 교사, 가입 승인을 한 곳에서 관리하는 시스템입니다.',
+    images: ['/opengraph-image'],
+  },
 };
 
 /**
