@@ -37,7 +37,7 @@ type AdjustTalentRequestBody = {
 };
 
 /**
- * 한국 시간 기준 금주 일요일 00:00을 반환한다.
+ * 한국 시간 기준 금주 일요일 00:00 값을 반환한다.
  */
 function getCurrentSundayKstDate(baseDate: Date = new Date()): Date {
   const todayKoreanYmd = formatDateToKoreanYmd(baseDate);
@@ -48,18 +48,33 @@ function getCurrentSundayKstDate(baseDate: Date = new Date()): Date {
   }).format(baseDate);
   const weekdayIndex = KOREAN_WEEKDAY_INDEX_BY_SHORT_NAME[weekdayName] ?? 0;
   const currentSunday = new Date(todayKstMidnight);
-
   currentSunday.setUTCDate(currentSunday.getUTCDate() - weekdayIndex);
-
   return currentSunday;
 }
 
 /**
- * 인증/승인된 교사 세션을 검증한다.
+ * 다음 주 일요일 00:00 값을 반환한다.
+ */
+function getNextSundayKstDate(currentSundayKstDate: Date): Date {
+  const nextSunday = new Date(currentSundayKstDate);
+  nextSunday.setUTCDate(nextSunday.getUTCDate() + 7);
+  return nextSunday;
+}
+
+/**
+ * 승인된 교사 세션을 검증한다.
  */
 async function validateApprovedSession(): Promise<
-  | { ok: true; teacherId: string }
-  | { ok: false; response: NextResponse<{ message: string }> }
+  | {
+      ok: true;
+      teacherId: string;
+      teacherName: string | null;
+      teacherEmail: string | null;
+    }
+  | {
+      ok: false;
+      response: NextResponse<{ message: string }>;
+    }
 > {
   const session = await getServerSession(authOptions);
   const teacherId = session?.user?.id;
@@ -78,11 +93,16 @@ async function validateApprovedSession(): Promise<
     };
   }
 
-  return { ok: true, teacherId };
+  return {
+    ok: true,
+    teacherId,
+    teacherName: session.user.name ?? null,
+    teacherEmail: session.user.email ?? null,
+  };
 }
 
 /**
- * 출석 인터랙션 영역 조회 API
+ * 출석 인터랙션 조회 API
  */
 export async function GET(request: Request) {
   const validatedSession = await validateApprovedSession();
@@ -108,7 +128,7 @@ export async function GET(request: Request) {
 }
 
 /**
- * 출석/달란트 조정 액션 API
+ * 출석/달란트 변경 API
  */
 export async function POST(request: Request) {
   const validatedSession = await validateApprovedSession();
@@ -144,11 +164,17 @@ export async function POST(request: Request) {
         validatedSession.teacherId,
       );
 
-      if (result === 'stale_state') {
+      if (result.result === 'stale_state') {
         return NextResponse.json({ message: 'stale_state' }, { status: 409 });
       }
 
-      return NextResponse.json({ message: 'ok' });
+      return NextResponse.json({
+        message: 'ok',
+        student_id: body.student_id,
+        next_status: result.nextStatus,
+        current_talent: result.currentTalent,
+        talent_delta: result.talentDelta,
+      });
     } catch {
       return NextResponse.json({ message: 'server_error' }, { status: 500 });
     }
@@ -160,9 +186,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'invalid_request' }, { status: 400 });
     }
 
+    const attendanceDate = getCurrentSundayKstDate();
+    const nextSundayDate = getNextSundayKstDate(attendanceDate);
+
     try {
-      await updateStudentTalent(body.student_id, Number(amountString), validatedSession.teacherId);
-      return NextResponse.json({ message: 'ok' });
+      const updatedResult = await updateStudentTalent(
+        body.student_id,
+        Number(amountString),
+        validatedSession.teacherId,
+        attendanceDate,
+        nextSundayDate,
+      );
+
+      return NextResponse.json({
+        message: 'ok',
+        student_id: updatedResult.studentId,
+        student_name: updatedResult.studentName,
+        current_talent: updatedResult.currentTalent,
+        weekly_extra_talent: updatedResult.weeklyExtraTalent,
+        transaction: {
+          id: updatedResult.transaction.id,
+          amount: updatedResult.transaction.amount,
+          transacted_at: updatedResult.transaction.transactedAt.toISOString(),
+          teacher: {
+            name: validatedSession.teacherName,
+            email: validatedSession.teacherEmail,
+          },
+        },
+      });
     } catch {
       return NextResponse.json({ message: 'server_error' }, { status: 500 });
     }

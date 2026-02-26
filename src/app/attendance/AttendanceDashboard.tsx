@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import AttendanceTrendChart from '@/components/common/AttendanceTrendChart';
 
@@ -48,7 +48,7 @@ type AttendanceDashboardProps = {
 const GRADE_GROUP_ORDER = ['6학년', '5학년', '4학년', '3학년', '2학년', '1학년', '유아부'] as const;
 
 /**
- * 분기 생일자 목록을 학년별로 그룹핑한다.
+ * 분기 생일자 목록을 학년별로 그룹화한다.
  */
 function groupBirthdayStudentsByGrade(students: BirthdayStudentItem[]): Array<{
   gradeLabel: string;
@@ -111,12 +111,12 @@ export default function AttendanceDashboard({
 
   return (
     <section className="mx-auto mb-6 w-full max-w-5xl rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-6">
-      <h2 className="text-xl font-bold text-[var(--color-text)]">대시보드</h2>
+      <h2 className="text-2xl font-bold text-[var(--color-text)]">대시보드</h2>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <article className="surface-gradient rounded-xl border border-[var(--color-primary)] p-4 lg:col-span-2">
+        <article className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4 lg:col-span-2">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-semibold text-[var(--color-text)]">주간 일정</h3>
+            <h3 className="text-[length:var(--text-base)] font-semibold text-[var(--color-text)]">주간 일정</h3>
             <form action={onRefreshWeeklyCalendar}>
               <RefreshCalendarButton />
             </form>
@@ -127,8 +127,13 @@ export default function AttendanceDashboard({
               { title: '금주', summary: currentWeekCalendarSummary },
               { title: '차주', summary: nextWeekCalendarSummary },
             ].map((item) => (
-              <article key={item.title} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
-                <h4 className="text-sm font-semibold text-[var(--color-text)]">{item.title} 예배 일정</h4>
+              <article
+                key={item.title}
+                className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3"
+              >
+                <h4 className="text-[length:var(--text-base)] font-semibold text-[var(--color-text)]">
+                  {item.title} 예배 일정
+                </h4>
                 <dl className="mt-2 grid gap-2 text-sm">
                   <div className="flex items-center justify-between gap-2">
                     <dt className="text-[var(--color-muted)]">예배 날짜</dt>
@@ -146,7 +151,9 @@ export default function AttendanceDashboard({
                   </div>
                 </dl>
                 <div className="mt-3">
-                  <h5 className="text-sm font-semibold text-[var(--color-text)]">{item.title} 주간일정</h5>
+                  <h5 className="text-[length:var(--text-base)] font-semibold text-[var(--color-text)]">
+                    {item.title} 주간일정
+                  </h5>
                   {item.summary && item.summary.weeklySchedules.length > 0 ? (
                     <ul className="mt-2 grid gap-1 text-sm text-[var(--color-text)]">
                       {item.summary.weeklySchedules.map((schedule, index) => (
@@ -168,7 +175,7 @@ export default function AttendanceDashboard({
         </article>
 
         <article className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4 lg:col-span-2">
-          <h3 className="text-sm font-semibold text-[var(--color-text)]">출석 인원 추이</h3>
+          <h3 className="text-[length:var(--text-base)] font-semibold text-[var(--color-text)]">출석 인원 추이</h3>
           <p className="mt-2 text-sm text-[var(--color-muted)]">
             금일 출석 인원(금주 기준):{' '}
             <span className="font-semibold text-[var(--color-text)]">{todayPresentCount}명</span>
@@ -178,9 +185,11 @@ export default function AttendanceDashboard({
           </div>
         </article>
 
-        <article className="surface-gradient rounded-xl border border-[var(--color-primary)] p-4">
+        <article className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h3 className="text-sm font-semibold text-[var(--color-text)]">{currentQuarter}분기 학생 생일자</h3>
+            <h3 className="text-[length:var(--text-base)] font-semibold text-[var(--color-text)]">
+              {currentQuarter}분기 학생 생일자
+            </h3>
             {shouldShowBirthdayPartyBanner ? (
               <p className="inline-flex w-fit items-center rounded-full border border-[var(--color-danger)] bg-[var(--color-surface)] px-3 py-1 text-sm font-semibold text-[var(--color-danger)] shadow-sm">
                 금주는 생일자 파티입니다 🎉
@@ -193,7 +202,10 @@ export default function AttendanceDashboard({
           ) : (
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {birthdayGroups.map((group) => (
-                <article key={group.gradeLabel} className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2">
+                <article
+                  key={group.gradeLabel}
+                  className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2"
+                >
                   <p className="text-xs font-semibold text-[var(--color-muted)]">{group.gradeLabel}</p>
                   <ul className="mt-1 flex flex-wrap gap-1">
                     {group.students.map((student) => (
@@ -211,11 +223,13 @@ export default function AttendanceDashboard({
           )}
         </article>
 
-        <article className="surface-gradient rounded-xl border border-[var(--color-primary)] p-4">
-          <h3 className="text-sm font-semibold text-[var(--color-text)]">교사 생일자 (이번달 / 다음달)</h3>
+        <article className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4">
+          <h3 className="text-[length:var(--text-base)] font-semibold text-[var(--color-text)]">
+            교사 생일자(이번 달 / 다음 달)
+          </h3>
           <div className="mt-3 grid gap-4 sm:grid-cols-2">
             <div>
-              <p className="text-xs font-medium text-[var(--color-muted)]">이번달</p>
+              <p className="text-xs font-medium text-[var(--color-muted)]">이번 달</p>
               {thisMonthTeacherBirthdays.length === 0 ? (
                 <p className="mt-1 text-sm text-[var(--color-muted)]">없음</p>
               ) : (
@@ -229,7 +243,7 @@ export default function AttendanceDashboard({
               )}
             </div>
             <div>
-              <p className="text-xs font-medium text-[var(--color-muted)]">다음달</p>
+              <p className="text-xs font-medium text-[var(--color-muted)]">다음 달</p>
               {nextMonthTeacherBirthdays.length === 0 ? (
                 <p className="mt-1 text-sm text-[var(--color-muted)]">없음</p>
               ) : (

@@ -64,6 +64,31 @@ type AdjustTalentInput = {
   amount: number;
 };
 
+type ToggleAttendanceResponse = {
+  message: 'ok';
+  student_id: string;
+  next_status: AttendanceStatus;
+  current_talent: number;
+  talent_delta: number;
+};
+
+type AdjustTalentResponse = {
+  message: 'ok';
+  student_id: string;
+  student_name: string;
+  current_talent: number;
+  weekly_extra_talent: number;
+  transaction: {
+    id: string;
+    amount: number;
+    transacted_at: string;
+    teacher: {
+      name: string | null;
+      email: string | null;
+    };
+  };
+};
+
 async function fetchInteractiveAttendance(selectedTab: AttendanceTabKey): Promise<InteractiveAttendancePayload> {
   const response = await fetch(`/api/attendance/interactive?attendance_tab=${selectedTab}`, {
     method: 'GET',
@@ -78,7 +103,7 @@ async function fetchInteractiveAttendance(selectedTab: AttendanceTabKey): Promis
   return response.json();
 }
 
-async function requestToggleAttendance(input: ToggleAttendanceInput): Promise<void> {
+async function requestToggleAttendance(input: ToggleAttendanceInput): Promise<ToggleAttendanceResponse> {
   const response = await fetch('/api/attendance/interactive', {
     method: 'POST',
     headers: {
@@ -100,9 +125,11 @@ async function requestToggleAttendance(input: ToggleAttendanceInput): Promise<vo
 
     throw new Error('attendance_toggle_failed');
   }
+
+  return (await response.json()) as ToggleAttendanceResponse;
 }
 
-async function requestAdjustTalent(input: AdjustTalentInput): Promise<void> {
+async function requestAdjustTalent(input: AdjustTalentInput): Promise<AdjustTalentResponse> {
   const response = await fetch('/api/attendance/interactive', {
     method: 'POST',
     headers: {
@@ -119,6 +146,8 @@ async function requestAdjustTalent(input: AdjustTalentInput): Promise<void> {
   if (!response.ok) {
     throw new Error('talent_adjust_failed');
   }
+
+  return (await response.json()) as AdjustTalentResponse;
 }
 
 function TalentLogCardList({ logs }: { logs: SerializableTalentLogRow[] }) {
@@ -198,6 +227,26 @@ export default function AttendanceInteractiveSection({
 
       return { previousData };
     },
+    onSuccess: (responsePayload) => {
+      queryClient.setQueryData<InteractiveAttendancePayload>(queryKey, (current) => {
+        if (!current) {
+          return current;
+        }
+
+        return {
+          ...current,
+          studentsForTable: current.studentsForTable.map((student) =>
+            student.id === responsePayload.student_id
+              ? {
+                  ...student,
+                  attendanceStatus: responsePayload.next_status,
+                  currentTalent: responsePayload.current_talent,
+                }
+              : student,
+          ),
+        };
+      });
+    },
     onError: (error, _input, context) => {
       if (context?.previousData) {
         queryClient.setQueryData(queryKey, context.previousData);
@@ -209,6 +258,7 @@ export default function AttendanceInteractiveSection({
           message: '다른 교사가 먼저 출석 상태를 변경했습니다.',
           description: '최신 상태를 다시 불러옵니다.',
         });
+        queryClient.invalidateQueries({ queryKey });
       } else {
         showToast({
           variant: 'error',
@@ -216,9 +266,6 @@ export default function AttendanceInteractiveSection({
           description: '잠시 후 다시 시도해 주세요.',
         });
       }
-    },
-    onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['attendance', 'interactive'] });
     },
   });
 
@@ -243,7 +290,45 @@ export default function AttendanceInteractiveSection({
 
       return { previousData };
     },
-    onSuccess: () => {
+    onSuccess: (responsePayload) => {
+      queryClient.setQueryData<InteractiveAttendancePayload>(queryKey, (current) => {
+        if (!current) {
+          return current;
+        }
+
+        const resolvedStudentName =
+          responsePayload.student_name ||
+          current.studentsForTable.find((student) => student.id === responsePayload.student_id)?.name ||
+          '-';
+
+        return {
+          studentsForTable: current.studentsForTable.map((student) =>
+            student.id === responsePayload.student_id
+              ? {
+                  ...student,
+                  weeklyExtraTalent: responsePayload.weekly_extra_talent,
+                  currentTalent: responsePayload.current_talent,
+                }
+              : student,
+          ),
+          talentLogs: [
+            {
+              id: responsePayload.transaction.id,
+              amount: responsePayload.transaction.amount,
+              transactedAt: responsePayload.transaction.transacted_at,
+              student: {
+                name: resolvedStudentName,
+              },
+              teacher: {
+                name: responsePayload.transaction.teacher.name,
+                email: responsePayload.transaction.teacher.email ?? '',
+              },
+            },
+            ...current.talentLogs,
+          ].slice(0, 40),
+        };
+      });
+
       showToast({
         variant: 'success',
         message: '달란트를 조정했습니다.',
@@ -259,9 +344,6 @@ export default function AttendanceInteractiveSection({
         message: '달란트 조정에 실패했습니다.',
         description: '잠시 후 다시 시도해 주세요.',
       });
-    },
-    onSettled: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['attendance', 'interactive'] });
     },
   });
 

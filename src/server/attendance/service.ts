@@ -470,27 +470,75 @@ export function getAttendancePeriodInfo(baseDate: Date = new Date()): {
   };
 }
 
-export async function updateStudentTalent(studentId: string, amount: number, teacherId: string) {
-  await runSerializableTransactionWithRetry(() =>
+export async function updateStudentTalent(
+  studentId: string,
+  amount: number,
+  teacherId: string,
+  attendanceDate: Date,
+  nextSundayDate: Date,
+): Promise<{
+  studentId: string;
+  studentName: string;
+  currentTalent: number;
+  weeklyExtraTalent: number;
+  transaction: {
+    id: string;
+    amount: number;
+    transactedAt: Date;
+  };
+}> {
+  return runSerializableTransactionWithRetry(() =>
     prisma.$transaction(
       async (tx) => {
-        await tx.student.update({
+        const updatedStudent = await tx.student.update({
           where: { id: studentId },
           data: {
             currentTalent: {
               increment: amount,
             },
           },
+          select: {
+            id: true,
+            name: true,
+            currentTalent: true,
+          },
         });
 
-        await tx.talentTransaction.create({
+        const createdTransaction = await tx.talentTransaction.create({
           data: {
             studentId,
             teacherId,
             reason: TalentTransactionReason.MANUAL_ADJUST,
             amount,
           },
+          select: {
+            id: true,
+            amount: true,
+            transactedAt: true,
+          },
         });
+
+        const weeklyExtraTalentSummary = await tx.talentTransaction.aggregate({
+          where: {
+            studentId,
+            reason: TalentTransactionReason.MANUAL_ADJUST,
+            transactedAt: {
+              gte: attendanceDate,
+              lt: nextSundayDate,
+            },
+          },
+          _sum: {
+            amount: true,
+          },
+        });
+
+        return {
+          studentId: updatedStudent.id,
+          studentName: updatedStudent.name,
+          currentTalent: updatedStudent.currentTalent,
+          weeklyExtraTalent: weeklyExtraTalentSummary._sum.amount ?? 0,
+          transaction: createdTransaction,
+        };
       },
       {
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
@@ -505,7 +553,17 @@ export async function updateAttendanceWithExpectedStatus(
   expectedCurrentStatus: AttendanceStatus,
   nextStatus: AttendanceStatus,
   teacherId: string,
-): Promise<'updated' | 'stale_state'> {
+): Promise<
+  | {
+      result: 'updated';
+      nextStatus: AttendanceStatus;
+      currentTalent: number;
+      talentDelta: number;
+    }
+  | {
+      result: 'stale_state';
+    }
+> {
   return runSerializableTransactionWithRetry(() =>
     prisma.$transaction(
       async (tx) => {
@@ -520,7 +578,7 @@ export async function updateAttendanceWithExpectedStatus(
 
         const currentStatus = existingAttendance?.status ?? AttendanceStatus.ABSENT;
         if (currentStatus !== expectedCurrentStatus || currentStatus === nextStatus) {
-          return 'stale_state' as const;
+          return { result: 'stale_state' as const };
         }
 
         let talentDelta = 0;
@@ -553,15 +611,21 @@ export async function updateAttendanceWithExpectedStatus(
           talentDelta = -1;
         }
 
+        let currentTalent = 0;
+
         if (talentDelta !== 0) {
-          await tx.student.update({
+          const updatedStudent = await tx.student.update({
             where: { id: studentId },
             data: {
               currentTalent: {
                 increment: talentDelta,
               },
             },
+            select: {
+              currentTalent: true,
+            },
           });
+          currentTalent = updatedStudent.currentTalent;
 
           await tx.talentTransaction.create({
             data: {
@@ -571,9 +635,22 @@ export async function updateAttendanceWithExpectedStatus(
               amount: talentDelta,
             },
           });
+        } else {
+          const currentStudent = await tx.student.findUnique({
+            where: { id: studentId },
+            select: {
+              currentTalent: true,
+            },
+          });
+          currentTalent = currentStudent?.currentTalent ?? 0;
         }
 
-        return 'updated' as const;
+        return {
+          result: 'updated' as const,
+          nextStatus,
+          currentTalent,
+          talentDelta,
+        };
       },
       {
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,

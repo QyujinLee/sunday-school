@@ -4,6 +4,8 @@ import GoogleProvider from 'next-auth/providers/google';
 import { prisma } from '@/lib/prisma';
 import { TEACHER_APPROVAL_STATUS, TEACHER_ROLE } from '@/types/teacher';
 
+const TEACHER_SESSION_SYNC_INTERVAL_SECONDS = 60 * 5;
+
 const parseAdminEmails = (): string[] =>
   (process.env.ADMIN_EMAILS ?? '')
     .split(',')
@@ -53,8 +55,23 @@ export const authOptions: NextAuthOptions = {
 
       return true;
     },
-    async jwt({ token }) {
+    async jwt({ token, trigger, user }) {
       if (!token.email) {
+        return token;
+      }
+
+      const nowTimestampSeconds = Math.floor(Date.now() / 1000);
+      const lastSyncedAtSeconds =
+        typeof token.teacherSyncedAt === 'number' ? token.teacherSyncedAt : 0;
+      const hasTeacherSnapshot =
+        Boolean(token.teacherId) && Boolean(token.role) && Boolean(token.approvalStatus);
+      const shouldSkipDatabaseSync =
+        hasTeacherSnapshot &&
+        !user &&
+        trigger !== 'update' &&
+        nowTimestampSeconds - lastSyncedAtSeconds < TEACHER_SESSION_SYNC_INTERVAL_SECONDS;
+
+      if (shouldSkipDatabaseSync) {
         return token;
       }
 
@@ -70,6 +87,7 @@ export const authOptions: NextAuthOptions = {
       token.role = teacher.role;
       token.approvalStatus = teacher.approvalStatus;
       token.name = teacher.name ?? token.name;
+      token.teacherSyncedAt = nowTimestampSeconds;
 
       return token;
     },
