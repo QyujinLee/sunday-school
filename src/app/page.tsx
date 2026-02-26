@@ -24,6 +24,7 @@ export default async function Page() {
               <Link
                 key={item.label}
                 href={item.url}
+                prefetch={false}
                 target={isExternal ? '_blank' : undefined}
                 rel={isExternal ? 'noreferrer noopener' : undefined}
                 className="group flex aspect-square w-full flex-col items-center justify-center gap-3 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-2 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-[var(--color-primary-soft-hover)] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"

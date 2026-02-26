@@ -63,7 +63,7 @@ function TeacherTableRows({
         <td className="px-3 py-2 text-sm text-[var(--color-text)]">{getRoleLabel(teacher.role)}</td>
         <td className="px-3 py-2 text-sm text-[var(--color-text)]">
           {canEdit ? (
-            <Link href={`/teachers/${teacher.id}/edit`} className={EDIT_BUTTON_CLASS_NAME}>
+            <Link href={`/teachers/${teacher.id}/edit`} prefetch={false} className={EDIT_BUTTON_CLASS_NAME}>
               수정
             </Link>
           ) : (
@@ -122,7 +122,7 @@ function TeacherCardList({
 
             {canEdit ? (
               <div className="mt-3 flex justify-end">
-                <Link href={`/teachers/${teacher.id}/edit`} className={EDIT_BUTTON_CLASS_NAME}>
+                <Link href={`/teachers/${teacher.id}/edit`} prefetch={false} className={EDIT_BUTTON_CLASS_NAME}>
                   수정
                 </Link>
               </div>

@@ -113,13 +113,13 @@ export default function TimerPage() {
         <p className="mt-2 text-sm text-[var(--color-muted)]">입력 형식: `HH:MM:SS` (예: `00:03:30`)</p>
 
         <nav className="mt-5 flex flex-wrap gap-2" aria-label="레크레이션 도구 이동">
-          <Link href="/recreation" className="btn btn-secondary btn-sm">
+          <Link href="/recreation" prefetch={false} className="btn btn-secondary btn-sm">
             레크레이션 홈
           </Link>
-          <Link href="/recreation/number-baseball" className="btn btn-secondary btn-sm">
+          <Link href="/recreation/number-baseball" prefetch={false} className="btn btn-secondary btn-sm">
             숫자야구
           </Link>
-          <Link href="/recreation/timer" className="btn btn-primary btn-sm">
+          <Link href="/recreation/timer" prefetch={false} className="btn btn-primary btn-sm">
             타이머
           </Link>
         </nav>

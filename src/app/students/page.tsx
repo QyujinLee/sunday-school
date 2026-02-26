@@ -207,6 +207,7 @@ function StudentCardList({ students }: { students: StudentRow[] }) {
             <StudentAttendanceLedgerButton studentId={student.id} />
             <Link
               href={`/students/${student.id}/edit`}
+              prefetch={false}
               className="btn btn-secondary btn-sm ml-2"
             >
               수정
@@ -259,6 +260,7 @@ function StudentsTableRows({ students }: { students: StudentRow[] }) {
           <StudentAttendanceLedgerButton studentId={student.id} />
           <Link
             href={`/students/${student.id}/edit`}
+            prefetch={false}
             className="btn btn-secondary btn-sm"
           >
             수정
@@ -349,6 +351,7 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
             {isAdmin ? <TalentResetButton /> : null}
             <Link
               href="/students/new"
+              prefetch={false}
               className="btn btn-primary btn-md"
             >
               학생 등록
@@ -364,6 +367,7 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
               <Link
                 key={gradeTab}
                 href={gradeTab === '전체' ? '/students' : `/students?grade_tab=${encodeURIComponent(gradeTab)}`}
+                prefetch={false}
                 className={`inline-flex items-center justify-center rounded-full border px-3 py-1.5 text-sm font-medium transition ${
                   isSelected
                     ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] text-[var(--color-primary)]'

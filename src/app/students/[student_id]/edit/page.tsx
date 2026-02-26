@@ -341,6 +341,7 @@ export default async function StudentEditPage({ params, searchParams }: StudentE
           <h1 className="text-2xl font-bold text-[var(--color-text)]">학생 수정</h1>
           <Link
             href="/students"
+            prefetch={false}
             className="btn btn-secondary btn-md"
           >
             목록으로

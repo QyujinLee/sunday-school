@@ -268,6 +268,7 @@ export default async function TeacherEditPage({ params, searchParams }: TeacherE
           <h1 className="text-2xl font-bold text-[var(--color-text)]">교사 정보 수정</h1>
           <Link
             href="/teachers"
+            prefetch={false}
             className="btn btn-secondary btn-md"
           >
             목록으로

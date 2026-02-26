@@ -40,6 +40,7 @@ export default async function RecreationPage({ searchParams }: RecreationPagePro
         <nav className="mt-5 flex flex-wrap gap-2" aria-label="레크레이션 도구 탭">
           <Link
             href="/recreation?tool_tab=number_baseball"
+            prefetch={false}
             className={`inline-flex items-center justify-center rounded-full border px-3 py-1.5 text-sm font-medium transition ${
               selectedTool === 'number_baseball'
                 ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] text-[var(--color-primary)]'
@@ -51,6 +52,7 @@ export default async function RecreationPage({ searchParams }: RecreationPagePro
           </Link>
           <Link
             href="/recreation?tool_tab=timer"
+            prefetch={false}
             className={`inline-flex items-center justify-center rounded-full border px-3 py-1.5 text-sm font-medium transition ${
               selectedTool === 'timer'
                 ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] text-[var(--color-primary)]'
@@ -74,7 +76,7 @@ export default async function RecreationPage({ searchParams }: RecreationPagePro
             <p className="mt-2 text-sm text-[var(--color-muted)]">
               팀별로 독립된 보드에서 4자리 숫자를 추리할 수 있습니다.
             </p>
-            <Link href="/recreation/number-baseball" className="btn btn-primary btn-md mt-4">
+            <Link href="/recreation/number-baseball" prefetch={false} className="btn btn-primary btn-md mt-4">
               시작하기
             </Link>
           </article>
@@ -90,7 +92,7 @@ export default async function RecreationPage({ searchParams }: RecreationPagePro
             <p className="mt-2 text-sm text-[var(--color-muted)]">
               `HH:MM:SS` 형식으로 입력해 진행 시간을 제어할 수 있습니다.
             </p>
-            <Link href="/recreation/timer" className="btn btn-primary btn-md mt-4">
+            <Link href="/recreation/timer" prefetch={false} className="btn btn-primary btn-md mt-4">
               시작하기
             </Link>
           </article>

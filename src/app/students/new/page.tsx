@@ -283,6 +283,7 @@ export default async function StudentCreatePage({ searchParams }: StudentCreateP
           <h1 className="text-2xl font-bold text-[var(--color-text)]">학생 등록</h1>
           <Link
             href="/students"
+            prefetch={false}
             className="btn btn-secondary btn-md"
           >
             목록으로

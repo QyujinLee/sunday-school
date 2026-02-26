@@ -139,7 +139,7 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
   return (
     <>
       <header className="sticky top-0 z-50 flex h-[var(--header-height-mobile)] items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 sm:h-[var(--header-height-desktop)] sm:px-6">
-        <Link href="/" className="flex items-center gap-2 sm:gap-2.5">
+        <Link href="/" prefetch={false} className="flex items-center gap-2 sm:gap-2.5">
           <Image
             src="/img/img_main_logo.png"
             alt="서광주일학교 로고"
@@ -184,6 +184,7 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
         ) : (
           <Link
             href="/login"
+            prefetch={false}
             className="btn btn-secondary btn-md"
           >
             로그인
@@ -203,6 +204,7 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
                   <Link
                     key={item.label}
                     href={item.url}
+                    prefetch={false}
                     target={isExternal ? '_blank' : undefined}
                     rel={isExternal ? 'noreferrer noopener' : undefined}
                     className={`flex items-center gap-2 rounded-lg px-2 py-2 text-sm font-medium transition ${
@@ -252,6 +254,7 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
                   <Link
                     key={item.label}
                     href={item.url}
+                    prefetch={false}
                     target={isExternal ? '_blank' : undefined}
                     rel={isExternal ? 'noreferrer noopener' : undefined}
                     onClick={handleClickMenuItem}

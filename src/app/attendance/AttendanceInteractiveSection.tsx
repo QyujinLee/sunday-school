@@ -398,6 +398,7 @@ export default function AttendanceInteractiveSection({
               <Link
                 key={tab.key}
                 href={`/attendance?attendance_tab=${tab.key}`}
+                prefetch={false}
                 className={`inline-flex items-center justify-center rounded-full border px-3 py-1.5 text-sm font-medium transition ${
                   isSelected
                     ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)] text-[var(--color-primary)]'
