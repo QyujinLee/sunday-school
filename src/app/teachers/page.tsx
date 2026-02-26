@@ -143,6 +143,9 @@ export default async function TeachersPage() {
   const isAdmin = session?.user?.role === 'ADMIN';
 
   const teachers = await prisma.teacher.findMany({
+    where: {
+      approvalStatus: 'APPROVED',
+    },
     orderBy: [{ role: 'asc' }, { name: 'asc' }, { email: 'asc' }],
     select: {
       id: true,
