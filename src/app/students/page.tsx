@@ -1,4 +1,5 @@
-﻿import Link from 'next/link';
+﻿import type { Metadata } from 'next';
+import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/auth';
@@ -13,6 +14,10 @@ import TalentResetButton from './TalentResetButton';
 
 const STUDENT_GRADE_TABS = ['전체', '6학년', '5학년', '4학년', '3학년', '2학년', '1학년', '유아부'] as const;
 type StudentGradeTab = (typeof STUDENT_GRADE_TABS)[number];
+
+export const metadata: Metadata = {
+  title: '학생 관리',
+};
 
 type StudentsPageProps = {
   searchParams?: Promise<{
@@ -404,5 +409,6 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
     </main>
   );
 }
+
 
 

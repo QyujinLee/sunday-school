@@ -1,3 +1,4 @@
+﻿import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
@@ -9,6 +10,10 @@ import { prisma } from '@/lib/prisma';
 import { formatDateToKoreanYmd } from '@/utils/date';
 import DeleteStudentButton from './DeleteStudentButton';
 import StudentEditErrorToast from './StudentEditErrorToast';
+
+export const metadata: Metadata = {
+  title: '학생 수정',
+};
 
 const PHONE_NUMBER_REGEX = /^010-\d{4}-\d{4}$/;
 const FIELD_LABEL_BY_KEY: Record<string, string> = {
@@ -476,3 +481,4 @@ export default async function StudentEditPage({ params, searchParams }: StudentE
     </main>
   );
 }
+

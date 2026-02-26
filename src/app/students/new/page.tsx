@@ -1,4 +1,5 @@
-﻿import Link from 'next/link';
+﻿import type { Metadata } from 'next';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { Gender, Relationship } from '@prisma/client';
@@ -91,6 +92,10 @@ const studentCreateSchema = z
       });
     }
   });
+
+export const metadata: Metadata = {
+  title: '학생 등록',
+};
 
 interface FieldLabelProps {
   label: string;
@@ -417,4 +422,5 @@ export default async function StudentCreatePage({ searchParams }: StudentCreateP
     </main>
   );
 }
+
 

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 
 const RECREATION_TOOL_KEYS = ['number_baseball', 'timer'] as const;
@@ -7,6 +8,10 @@ type RecreationPageProps = {
   searchParams?: Promise<{
     tool_tab?: string | string[];
   }>;
+};
+
+export const metadata: Metadata = {
+  title: '레크레이션',
 };
 
 /**

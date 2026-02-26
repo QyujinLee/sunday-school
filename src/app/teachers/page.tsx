@@ -1,10 +1,15 @@
-﻿import Link from 'next/link';
+﻿import type { Metadata } from 'next';
+import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { formatDateToKoreanYmd } from '@/utils/date';
 import TeachersResultToast from './TeachersResultToast';
+
+export const metadata: Metadata = {
+  title: '교사 정보',
+};
 
 type TeacherRow = {
   id: string;
@@ -228,3 +233,4 @@ export default async function TeachersPage() {
     </main>
   );
 }
+

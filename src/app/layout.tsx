@@ -1,7 +1,9 @@
 ﻿import type { ReactNode } from 'react';
 
 import type { Metadata } from 'next';
+
 import localFont from 'next/font/local';
+
 import { getServerSession } from 'next-auth';
 
 import AppShell from '@/components/layout/AppShell';
@@ -74,7 +76,11 @@ export default async function RootLayout({
     <html lang="ko" className={pretendard.className}>
       <body>
         <Providers>
-          <AppShell role={session?.user?.role} approvalStatus={session?.user?.approvalStatus} userDisplayName={userDisplayName}>
+          <AppShell
+            role={session?.user?.role}
+            approvalStatus={session?.user?.approvalStatus}
+            userDisplayName={userDisplayName}
+          >
             {children}
           </AppShell>
         </Providers>

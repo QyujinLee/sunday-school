@@ -1,4 +1,5 @@
-﻿import { revalidatePath } from 'next/cache';
+﻿import type { Metadata } from 'next';
+import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import { getServerSession } from 'next-auth';
@@ -7,6 +8,10 @@ import DeleteTeacherButton from '@/components/common/DeleteTeacherButton';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import SignupManagementResultToast from './SignupManagementResultToast';
+
+export const metadata: Metadata = {
+  title: '가입 관리',
+};
 
 /**
  * 날짜를 화면 표시용 문자열로 포맷한다.
@@ -25,7 +30,10 @@ function formatDateTime(date: Date): string {
 async function updateApprovalStatus(teacherId: string, approvalStatus: 'APPROVED' | 'REJECTED') {
   await prisma.teacher.update({
     where: { id: teacherId },
-    data: { approvalStatus },
+    data: {
+      approvalStatus,
+      approvalProcessedAt: new Date(),
+    },
   });
 
   revalidatePath('/signup-management');
@@ -204,13 +212,14 @@ export default async function SignupManagementPage() {
         in: ['APPROVED', 'REJECTED'],
       },
     },
-    orderBy: { updatedAt: 'desc' },
+    orderBy: [{ approvalProcessedAt: 'desc' }, { updatedAt: 'desc' }],
     select: {
       id: true,
       name: true,
       email: true,
       approvalStatus: true,
       role: true,
+      approvalProcessedAt: true,
       updatedAt: true,
     },
   });
@@ -292,16 +301,12 @@ export default async function SignupManagementPage() {
                   <div>
                     <p className="text-sm font-semibold text-[var(--color-text)]">{teacher.name ?? '이름 미입력'}</p>
                     <p className="mt-1 text-sm text-[var(--color-muted)]">{teacher.email}</p>
-                    <p className="mt-1 text-xs text-[var(--color-muted)]">처리 시각: {formatDateTime(teacher.updatedAt)}</p>
+                    <p className="mt-1 text-xs text-[var(--color-muted)]">
+                      처리 시각: {formatDateTime(teacher.approvalProcessedAt ?? teacher.updatedAt)}
+                    </p>
                   </div>
 
                   <div className="flex flex-col items-start gap-2 sm:ml-auto sm:items-end">
-                    {!isApproved ? (
-                      <span className="inline-flex w-fit items-center rounded-full border border-[var(--color-danger)] bg-[var(--color-danger-soft)] px-2.5 py-1 text-xs font-medium text-[var(--color-danger)]">
-                        거절됨
-                      </span>
-                    ) : null}
-
                     {isApproved ? (
                       <div className="flex items-center gap-2">
                         <span
@@ -331,7 +336,17 @@ export default async function SignupManagementPage() {
                           <DeleteTeacherButton deleteFormId={`delete-joined-teacher-form-${teacher.id}`} disabled={isMe} />
                         </form>
                       </div>
-                    ) : null}
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex w-fit items-center rounded-full border border-[var(--color-danger)] bg-[var(--color-danger-soft)] px-2.5 py-1 text-xs font-medium text-[var(--color-danger)]">
+                          거절됨
+                        </span>
+                        <form id={`delete-joined-teacher-form-${teacher.id}`} action={handleDeleteJoinedTeacher}>
+                          <input type="hidden" name="teacher_id" value={teacher.id} />
+                          <DeleteTeacherButton deleteFormId={`delete-joined-teacher-form-${teacher.id}`} disabled={isMe} />
+                        </form>
+                      </div>
+                    )}
                   </div>
                 </article>
               );
@@ -342,3 +357,4 @@ export default async function SignupManagementPage() {
     </main>
   );
 }
+

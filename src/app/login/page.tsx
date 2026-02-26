@@ -1,4 +1,10 @@
-﻿import GoogleSignInButton from '@/components/common/GoogleSignInButton';
+﻿import type { Metadata } from 'next';
+
+import GoogleSignInButton from '@/components/common/GoogleSignInButton';
+
+export const metadata: Metadata = {
+  title: '로그인',
+};
 
 type LoginPageProps = {
   searchParams?: Promise<{ callback_url?: string | string[] }>;

@@ -1,4 +1,10 @@
-﻿import ApprovalStatusCard from '@/components/common/ApprovalStatusCard';
+﻿import type { Metadata } from 'next';
+
+import ApprovalStatusCard from '@/components/common/ApprovalStatusCard';
+
+export const metadata: Metadata = {
+  title: '가입 거절',
+};
 
 /**
  * 가입 거절 안내 페이지를 렌더링한다.

@@ -50,6 +50,7 @@ model Teacher {
   grade          String?
   role           TeacherRole           @default(TEACHER)
   approvalStatus TeacherApprovalStatus @default(PENDING)
+  approvalProcessedAt DateTime?
   isActive       Boolean               @default(true)
   createdAt      DateTime              @default(now())
   updatedAt      DateTime              @updatedAt

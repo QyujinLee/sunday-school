@@ -1,4 +1,5 @@
-﻿import Link from 'next/link';
+﻿import type { Metadata } from 'next';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 
@@ -18,6 +19,10 @@ const FIELD_LABEL_BY_KEY: Record<string, string> = {
   birth_date: '생년월일',
   grade: '담당 학년',
   is_active: '활성 상태',
+};
+
+export const metadata: Metadata = {
+  title: '교사 수정',
 };
 
 type TeacherEditPageProps = {
@@ -375,3 +380,4 @@ export default async function TeacherEditPage({ params, searchParams }: TeacherE
     </main>
   );
 }
+

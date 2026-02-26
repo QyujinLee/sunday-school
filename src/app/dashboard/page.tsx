@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
@@ -6,6 +7,10 @@ import { authOptions } from '@/lib/auth';
 import { getAttendancePageData } from '@/server/attendance/service';
 
 import AttendanceDashboard from '../attendance/AttendanceDashboard';
+
+export const metadata: Metadata = {
+  title: '대시보드',
+};
 
 /**
  * 대시보드 페이지를 렌더링한다.

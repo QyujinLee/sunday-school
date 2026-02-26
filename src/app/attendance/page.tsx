@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import {
   getAttendanceInteractiveData,
   getAttendancePeriodInfo,
@@ -7,6 +8,10 @@ import { formatDateToKoreanYmd } from '@/utils/date';
 
 import AttendanceInteractiveSection from './AttendanceInteractiveSection';
 import AttendanceResultToast from './AttendanceResultToast';
+
+export const metadata: Metadata = {
+  title: '출석 관리',
+};
 
 type AttendancePageProps = {
   searchParams?: Promise<{
