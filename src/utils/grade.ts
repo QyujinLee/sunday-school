@@ -1,4 +1,4 @@
-import { formatDateToKoreanYmd } from '@/utils/date';
+import { formatDateToKoreanYmd, getKoreanYear } from '@/utils/date';
 
 export type StudentGradeLabel =
   | '6학년'
@@ -29,7 +29,8 @@ export function getGradeLabelByBirthDateInKst(
   baseDate: Date = new Date(),
 ): StudentGradeLabel {
   const schoolYear = getSchoolYearInKst(baseDate);
-  const gradeNumber = schoolYear - birthDate.getFullYear() - 6;
+  const birthYearInKst = getKoreanYear(birthDate);
+  const gradeNumber = schoolYear - birthYearInKst - 6;
 
   if (gradeNumber >= 1 && gradeNumber <= 6) {
     return `${gradeNumber}학년` as StudentGradeLabel;

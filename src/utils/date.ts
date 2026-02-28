@@ -17,3 +17,10 @@ export function formatDateToKoreanYmd(dateValue: Date): string {
 
   return `${year}-${month}-${day}`;
 }
+
+/**
+ * Date 값을 한국시간 기준 연도 숫자로 반환한다.
+ */
+export function getKoreanYear(dateValue: Date): number {
+  return Number(formatDateToKoreanYmd(dateValue).slice(0, 4));
+}

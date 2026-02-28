@@ -1,3 +1,5 @@
+import { getKoreanYear } from '@/utils/date';
+
 type GradeAndName = {
   gradeLabel: string;
   name: string;
@@ -14,7 +16,7 @@ const KOREAN_NAME_COLLATOR = new Intl.Collator('ko-KR', {
  */
 export function sortStudentsByGradeDescThenName<T extends GradeAndName>(students: T[]): T[] {
   return [...students].sort((a, b) => {
-    const birthYearDiff = a.birthDate.getFullYear() - b.birthDate.getFullYear();
+    const birthYearDiff = getKoreanYear(a.birthDate) - getKoreanYear(b.birthDate);
 
     if (birthYearDiff !== 0) {
       return birthYearDiff;
