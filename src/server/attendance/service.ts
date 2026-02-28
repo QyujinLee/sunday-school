@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { sortStudentsByGradeDescThenName } from '@/lib/student-sort';
 import { getWeeklyCalendarSummary } from '@/server/calendar/google-calendar';
 import { formatDateToKoreanYmd } from '@/utils/date';
+import { getGradeLabelByBirthDateInKst } from '@/utils/grade';
 
 const ATTENDANCE_TAB_KEYS = [
   'this_week',
@@ -181,7 +182,7 @@ export async function getAttendancePageData(selectedTab: AttendanceTabKey): Prom
         id: student.id,
         name: student.name,
         birthDate: student.birthDate,
-        gradeLabel: getGradeLabelByBirthDate(student.birthDate),
+        gradeLabel: getGradeLabelByBirthDateInKst(student.birthDate),
       }))
       .filter((student) => {
         const birthMonth = Number(formatDateToKoreanYmd(student.birthDate).slice(5, 7));
@@ -291,7 +292,7 @@ export async function getAttendancePageData(selectedTab: AttendanceTabKey): Prom
   const studentRows: StudentRow[] = students
     .map((student) => ({
       ...student,
-      gradeLabel: getGradeLabelByBirthDate(student.birthDate),
+      gradeLabel: getGradeLabelByBirthDateInKst(student.birthDate),
       attendanceStatus: attendanceStatusByStudentId.get(student.id) ?? AttendanceStatus.ABSENT,
       weeklyExtraTalent: weeklyManualTalentByStudentId.get(student.id) ?? 0,
     }))
@@ -410,7 +411,7 @@ export async function getAttendanceInteractiveData(selectedTab: AttendanceTabKey
   const studentRows: StudentRow[] = students
     .map((student) => ({
       ...student,
-      gradeLabel: getGradeLabelByBirthDate(student.birthDate),
+      gradeLabel: getGradeLabelByBirthDateInKst(student.birthDate),
       attendanceStatus: attendanceStatusByStudentId.get(student.id) ?? AttendanceStatus.ABSENT,
       weeklyExtraTalent: weeklyManualTalentByStudentId.get(student.id) ?? 0,
     }))
@@ -787,17 +788,6 @@ function getQuarterEndMonth(quarter: 1 | 2 | 3 | 4): 3 | 6 | 9 | 12 {
 
 function sortBirthdayStudents(students: BirthdayStudentRow[]): BirthdayStudentRow[] {
   return sortStudentsByGradeDescThenName(students);
-}
-
-function getGradeLabelByBirthDate(birthDate: Date): GradeLabel {
-  const today = new Date();
-  const schoolYear = today.getMonth() + 1 >= 3 ? today.getFullYear() : today.getFullYear() - 1;
-  const gradeNumber = schoolYear - birthDate.getFullYear() - 6;
-
-  if (gradeNumber >= 1 && gradeNumber <= 6) {
-    return `${gradeNumber}\uD559\uB144` as GradeLabel;
-  }
-  return '\uC720\uC544\uBD80';
 }
 
 function filterStudentsByTab(students: StudentRow[], selectedTab: AttendanceTabKey): StudentRow[] {

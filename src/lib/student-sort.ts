@@ -10,7 +10,7 @@ const KOREAN_NAME_COLLATOR = new Intl.Collator('ko-KR', {
 });
 
 /**
- * 학생 목록을 출생연도 오름차순으로 정렬하고, 같은 출생연도라면 이름 가나다순으로 정렬한다.
+ * 학생 목록을 출생연도 오름차순으로 정렬하고, 같은 연도는 이름 가나다순으로 정렬한다.
  */
 export function sortStudentsByGradeDescThenName<T extends GradeAndName>(students: T[]): T[] {
   return [...students].sort((a, b) => {

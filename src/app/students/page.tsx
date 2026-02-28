@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { sortStudentsByGradeDescThenName } from '@/lib/student-sort';
 import { formatDateToKoreanYmd } from '@/utils/date';
+import { getGradeLabelByBirthDateInKst } from '@/utils/grade';
 import CollapsiblePanel from './CollapsiblePanel';
 import StudentAttendanceLedgerButton from './StudentAttendanceLedgerButton';
 import StudentDetailButton from './StudentDetailButton';
@@ -52,21 +53,6 @@ function getSelectedGradeTab(gradeTab: string | string[] | undefined): StudentGr
   }
 
   return '전체';
-}
-
-/**
- * 학생 생년을 기준으로 현재 학년 라벨을 계산한다.
- */
-function getGradeLabelByBirthDate(birthDate: Date): Exclude<StudentGradeTab, '전체'> {
-  const today = new Date();
-  const schoolYear = today.getMonth() + 1 >= 3 ? today.getFullYear() : today.getFullYear() - 1;
-  const gradeNumber = schoolYear - birthDate.getFullYear() - 6;
-
-  if (gradeNumber >= 1 && gradeNumber <= 6) {
-    return `${gradeNumber}학년` as Exclude<StudentGradeTab, '전체'>;
-  }
-
-  return '유아부';
 }
 
 /**
@@ -336,7 +322,7 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
   const studentsWithGrade: StudentRow[] = students
     .map((student) => ({
       ...student,
-      gradeLabel: getGradeLabelByBirthDate(student.birthDate),
+      gradeLabel: getGradeLabelByBirthDateInKst(student.birthDate),
     }))
     .sort((a, b) => a.name.localeCompare(b.name, 'ko-KR'));
 

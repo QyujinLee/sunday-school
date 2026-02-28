@@ -17,4 +17,3 @@ export function formatDateToKoreanYmd(dateValue: Date): string {
 
   return `${year}-${month}-${day}`;
 }
-
