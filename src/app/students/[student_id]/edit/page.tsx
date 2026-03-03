@@ -269,7 +269,7 @@ export default async function StudentEditPage({ params, searchParams }: StudentE
     }
 
     const studentInput = parsedResult.data;
-    const birthDate = new Date(`${studentInput.birth_date}T00:00:00`);
+    const birthDate = new Date(`${studentInput.birth_date}T00:00:00+09:00`);
     const hasGuardianContact = Boolean(
       studentInput.guardian_name && studentInput.guardian_relationship && studentInput.guardian_phone
     );

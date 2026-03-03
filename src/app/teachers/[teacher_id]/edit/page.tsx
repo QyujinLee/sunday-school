@@ -241,7 +241,7 @@ export default async function TeacherEditPage({ params, searchParams }: TeacherE
     }
 
     const teacherInput = parsedResult.data;
-    const birthDate = teacherInput.birth_date ? new Date(`${teacherInput.birth_date}T00:00:00`) : null;
+    const birthDate = teacherInput.birth_date ? new Date(`${teacherInput.birth_date}T00:00:00+09:00`) : null;
 
     if (birthDate && Number.isNaN(birthDate.getTime())) {
       redirect(`/teachers/${teacherId}/edit?error_code=invalid_birth_date${serializedFormValues ? `&${serializedFormValues}` : ''}`);

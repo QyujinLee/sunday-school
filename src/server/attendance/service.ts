@@ -3,7 +3,7 @@
 import { prisma } from '@/lib/prisma';
 import { sortStudentsByGradeDescThenName } from '@/lib/student-sort';
 import { getWeeklyCalendarSummary } from '@/server/calendar/google-calendar';
-import { formatDateToKoreanYmd } from '@/utils/date';
+import { formatDateToKoreanYmd, getKoreanYear } from '@/utils/date';
 import { getGradeLabelByBirthDateInKst } from '@/utils/grade';
 
 const ATTENDANCE_TAB_KEYS = [
@@ -147,9 +147,9 @@ export function getGradeDisplayLabel(student: Pick<StudentRow, 'gradeLabel' | 'b
     return student.gradeLabel;
   }
 
-  const currentYear = new Date().getFullYear();
-  const yearlyAge = Math.max(0, currentYear - student.birthDate.getFullYear());
-  return `\uC720\uC544\uBD80 (\uB9CC ${yearlyAge}\uC138)`;
+  const currentYearInKst = getKoreanYear(new Date());
+  const yearlyAge = Math.max(0, currentYearInKst - getKoreanYear(student.birthDate));
+  return `\uC720\uC544\uBD80 (\uC5F0 ${yearlyAge}\uC138)`;
 }
 
 export async function getAttendancePageData(selectedTab: AttendanceTabKey): Promise<AttendancePageData> {
@@ -266,10 +266,11 @@ export async function getAttendancePageData(selectedTab: AttendanceTabKey): Prom
     };
   });
 
-  const nextNextSundayDate = getNextSundayKstDate(nextSundayDate);
-  const thirdSundayDate = getNextSundayKstDate(nextNextSundayDate);
-  const currentWeekCalendarSummary = await getWeeklyCalendarSummary(attendanceDate, nextSundayDate);
-  const nextWeekCalendarSummary = await getWeeklyCalendarSummary(nextNextSundayDate, thirdSundayDate);
+  const worshipWeekSundayDate = getWorshipWeekSundayKstDate();
+  const nextWorshipWeekSundayDate = getNextSundayKstDate(worshipWeekSundayDate);
+  const thirdWorshipWeekSundayDate = getNextSundayKstDate(nextWorshipWeekSundayDate);
+  const currentWeekCalendarSummary = await getWeeklyCalendarSummary(worshipWeekSundayDate, nextWorshipWeekSundayDate);
+  const nextWeekCalendarSummary = await getWeeklyCalendarSummary(nextWorshipWeekSundayDate, thirdWorshipWeekSundayDate);
 
   const weeklyManualTalentSums = await prisma.talentTransaction.groupBy({
     by: ['studentId'],
@@ -712,6 +713,21 @@ function getNextSundayKstDate(currentSundayKstDate: Date): Date {
   const nextSunday = new Date(currentSundayKstDate);
   nextSunday.setUTCDate(nextSunday.getUTCDate() + 7);
   return nextSunday;
+}
+
+/**
+ * 예배 일정 기준 일요일을 반환한다.
+ * 일요일은 당일을, 월~토는 다음 일요일을 기준으로 사용한다.
+ */
+function getWorshipWeekSundayKstDate(baseDate: Date = new Date()): Date {
+  const currentSunday = getCurrentSundayKstDate(baseDate);
+  const weekdayIndex = getKoreanWeekdayIndex(baseDate);
+
+  if (weekdayIndex === 0) {
+    return currentSunday;
+  }
+
+  return getNextSundayKstDate(currentSunday);
 }
 
 function formatDateToMmDd(dateValue: Date): string {

@@ -5,7 +5,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { sortStudentsByGradeDescThenName } from '@/lib/student-sort';
-import { formatDateToKoreanYmd } from '@/utils/date';
+import { formatDateToKoreanYmd, getCurrentAgeInKst, getKoreanDateParts, getKoreanYear } from '@/utils/date';
 import { getGradeLabelByBirthDateInKst } from '@/utils/grade';
 import CollapsiblePanel from './CollapsiblePanel';
 import StudentAttendanceLedgerButton from './StudentAttendanceLedgerButton';
@@ -77,8 +77,8 @@ function getGradeDisplayLabel(student: Pick<StudentRow, 'gradeLabel' | 'birthDat
     return student.gradeLabel;
   }
 
-  const currentYear = new Date().getFullYear();
-  const yearlyAge = Math.max(0, currentYear - student.birthDate.getFullYear());
+  const currentYearInKst = getKoreanYear(new Date());
+  const yearlyAge = Math.max(0, currentYearInKst - getKoreanYear(student.birthDate));
 
   return `유아부 (연 ${yearlyAge}세)`;
 }
@@ -110,25 +110,15 @@ function getRelationshipLabel(relationship: 'FATHER' | 'MOTHER' | 'GRANDFATHER' 
  * 현재 날짜 기준 만 나이를 계산한다.
  */
 function getCurrentAge(birthDate: Date): number {
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const hasHadBirthdayThisYear =
-    today.getMonth() > birthDate.getMonth() ||
-    (today.getMonth() === birthDate.getMonth() && today.getDate() >= birthDate.getDate());
-
-  if (!hasHadBirthdayThisYear) {
-    age -= 1;
-  }
-
-  return age;
+  return getCurrentAgeInKst(birthDate);
 }
 
 /**
  * 현재 날짜 기준 졸업 조건(만 14세 이상 + 3월 이후)에 해당하는지 반환한다.
  */
 function isGraduateByCurrentDate(birthDate: Date): boolean {
-  const today = new Date();
-  const isAfterMarch = today.getMonth() + 1 >= 3;
+  const todayInKst = getKoreanDateParts(new Date());
+  const isAfterMarch = todayInKst.month >= 3;
   const age = getCurrentAge(birthDate);
 
   return isAfterMarch && age >= 14;

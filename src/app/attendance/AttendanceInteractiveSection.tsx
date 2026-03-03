@@ -501,7 +501,7 @@ export default function AttendanceInteractiveSection({
                           className: 'min-w-[68px]',
                         })}
                       >
-                        {isPresent ? '결석' : '출석'}
+                        {isPresent ? '출석 취소' : '출석'}
                       </button>
                     </div>
                   </li>
@@ -616,7 +616,7 @@ export default function AttendanceInteractiveSection({
                               className: 'min-w-[68px]',
                             })}
                           >
-                            {isPresent ? '결석' : '출석'}
+                            {isPresent ? '출석 취소' : '출석'}
                           </button>
                         </td>
                       </tr>

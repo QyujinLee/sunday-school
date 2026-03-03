@@ -32,13 +32,32 @@ const pretendard = localFont({
   ],
 });
 
+function resolveMetadataBase(): URL {
+  const configuredSiteUrl =
+    process.env.NEXTAUTH_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined) ||
+    'http://localhost:3000';
+
+  return new URL(configuredSiteUrl);
+}
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXTAUTH_URL ?? 'http://localhost:3000'),
+  metadataBase: resolveMetadataBase(),
+  manifest: '/manifest.webmanifest',
   title: {
     default: '서광 주일학교 관리 시스템',
     template: '%s | 서광 주일학교 관리 시스템',
   },
   description: '주일학교 출석, 학생, 교사, 가입 승인을 한 곳에서 관리하는 시스템입니다.',
+  icons: {
+    icon: [
+      { url: '/app-icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/app-icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/app-icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
   openGraph: {
     title: '서광 주일학교 관리 시스템',
     description: '주일학교 출석, 학생, 교사, 가입 승인을 한 곳에서 관리하는 시스템입니다.',

@@ -26,8 +26,8 @@ export type WeeklyCalendarSummary = {
 const weeklyCalendarSnapshotCache = new Map<string, WeeklyCalendarSummary>();
 
 /**
- * 구글 캘린더에서 해당 주 일정을 조회하고 화면 정보로 파싱한다.
- * API 실패 시 마지막 성공 스냅샷을 반환한다.
+ * 구글 캘린더에서 해당 주의 일정을 조회하고 화면 정보로 파싱한다.
+ * API 호출 실패 시 마지막 성공 스냅샷을 반환한다.
  */
 export async function getWeeklyCalendarSummary(
   sundayStartDate: Date,
@@ -44,12 +44,10 @@ export async function getWeeklyCalendarSummary(
   const requestUrl = new URL(
     `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`,
   );
-  const nextSundayEndDate = new Date(nextSundayDate);
-  nextSundayEndDate.setUTCDate(nextSundayEndDate.getUTCDate() + 1);
 
   requestUrl.searchParams.set('key', apiKey);
   requestUrl.searchParams.set('timeMin', sundayStartDate.toISOString());
-  requestUrl.searchParams.set('timeMax', nextSundayEndDate.toISOString());
+  requestUrl.searchParams.set('timeMax', nextSundayDate.toISOString());
   requestUrl.searchParams.set('singleEvents', 'true');
   requestUrl.searchParams.set('orderBy', 'startTime');
   requestUrl.searchParams.set('maxResults', '20');
@@ -180,10 +178,10 @@ function extractRoleFromTitle(title: string, roleLabel: '사회' | '단상'): st
   const escapedRoleLabel = roleLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const candidates = [
     new RegExp(
-      `\\[?\\s*${escapedRoleLabel}\\s*\\]?\\s*[:：-]?\\s*([^|,/\\\\n]+?)(?=\\s*(?:\\||\\/|,|$))`,
+      `\\[?\\s*${escapedRoleLabel}\\s*\\]?\\s*[:：]?\\s*([^|,/\\\\n]+?)(?=\\s*(?:\\||\\/|,|$))`,
       'u',
     ),
-    new RegExp(`${escapedRoleLabel}\\s*[:：-]\\s*([^|,/\\\\n]+)`, 'u'),
+    new RegExp(`${escapedRoleLabel}\\s*[:：]\\s*([^|,/\\\\n]+)`, 'u'),
   ];
 
   for (const pattern of candidates) {
