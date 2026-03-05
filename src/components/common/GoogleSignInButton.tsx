@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import Image from 'next/image';
 
@@ -70,27 +70,11 @@ export default function GoogleSignInButton({ callbackUrl = '/' }: GoogleSignInBu
     if (browserContext.isAndroid) {
       const intentUrl = buildAndroidChromeIntentUrl(currentUrl);
       window.location.href = intentUrl;
-      window.setTimeout(() => {
-        window.open(currentUrl, '_blank', 'noopener,noreferrer');
-      }, 500);
       return;
     }
 
     window.open(currentUrl, '_blank', 'noopener,noreferrer');
   }
-
-  useEffect(() => {
-    if (!browserContext.isInAppBrowser || !browserContext.isMobile) {
-      return;
-    }
-
-    if (window.sessionStorage.getItem('external_browser_open_attempted') === '1') {
-      return;
-    }
-
-    window.sessionStorage.setItem('external_browser_open_attempted', '1');
-    handleOpenExternalBrowser();
-  }, [browserContext.isInAppBrowser, browserContext.isMobile, browserContext.isAndroid]);
 
   /**
    * 검증된 callback URL로 Google OAuth 로그인을 시작한다.
