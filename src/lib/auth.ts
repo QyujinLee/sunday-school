@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { TEACHER_APPROVAL_STATUS, TEACHER_ROLE } from '@/types/teacher';
 
 const TEACHER_SESSION_SYNC_INTERVAL_SECONDS = 60 * 5;
+const DEFAULT_TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
 const parseAdminEmails = (): string[] =>
   (process.env.ADMIN_EMAILS ?? '')
@@ -15,10 +16,10 @@ const parseAdminEmails = (): string[] =>
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
-    maxAge: 60 * 60 * 24,
+    maxAge: DEFAULT_TOKEN_MAX_AGE_SECONDS,
   },
   jwt: {
-    maxAge: 60 * 60 * 24,
+    maxAge: DEFAULT_TOKEN_MAX_AGE_SECONDS,
   },
   providers: [
     GoogleProvider({
