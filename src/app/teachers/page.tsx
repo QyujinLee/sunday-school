@@ -5,7 +5,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { formatDateToKoreanYmd } from '@/utils/date';
-import TeachersResultToast from './TeachersResultToast';
 
 export const metadata: Metadata = {
   title: '교사 정보',
@@ -169,8 +168,6 @@ export default async function TeachersPage() {
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6">
-      <TeachersResultToast />
-
       <section className="mx-auto w-full max-w-5xl rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-2xl font-bold text-[var(--color-text)]">교사 정보</h1>
