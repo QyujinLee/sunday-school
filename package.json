@@ -10,7 +10,9 @@
     "build": "prisma migrate deploy && next build",
     "build:local": "dotenv -e .env.local -- prisma migrate deploy && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
@@ -47,6 +49,8 @@
     "eslint-plugin-prettier": "^5.5.5",
     "prettier": "^3.8.1",
     "prisma": "^6.19.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite": "^7",
+    "vitest": "^5.0.0"
   }
 }

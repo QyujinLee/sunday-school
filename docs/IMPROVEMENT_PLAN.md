@@ -3,7 +3,7 @@
 다른 PC/세션에서도 이어서 작업할 수 있도록 진행 상황과 남은 작업을 기록한다.
 작업 규칙은 저장소 루트의 `CLAUDE.md` / `AGENTS.md`를 먼저 읽을 것.
 
-**최종 갱신**: 2026-09-02 (Phase 0·1 완료)
+**최종 갱신**: 2026-09-07 (Phase 0·1·2 완료, 남은 것은 Phase 3)
 
 ---
 
@@ -69,6 +69,21 @@
 - ✅ 비로그인 상태에서 신규 API·페이지 전부 로그인 리다이렉트 확인
 - ⬜ **로그인 후 실제 화면 동작 확인 (남은 작업)** — 아래 체크리스트 참고
 
+### 권한 로직 기존 코드 대조 결과 (2026-09-07)
+
+실데이터라 수동 테스트가 어려워, 되돌릴 수 없는 동작을 기존 Server Action 코드(`git show 8fe9b78:...`)와 1:1 대조함.
+
+| 동작 | 기존 | 현재 | 판정 |
+|---|---|---|---|
+| 가입 승인/거절 | ADMIN 확인 → `approvalStatus` + `approvalProcessedAt` 갱신 | 동일 | 일치 |
+| 권한 토글 자기보호 | 본인 + `TEACHER`로 강등일 때만 차단 | 동일 | 일치(기준 세션이 요청 시점으로 바뀌어 더 정확) |
+| 교사 삭제 자기보호 | 본인 계정 차단 | 동일 | 일치 |
+| 교사 수정 권한 | 관리자 또는 본인, `is_active`는 관리자만 | 동일(비관리자 요청은 필드 자체를 제외) | 일치 |
+| 학생 등록/수정/삭제 | **세션 검증 없음**(미들웨어에만 의존) | `requireApprovedTeacher()` 추가 | 강화됨 |
+| 관리자 API 접근 | `role === 'ADMIN'`만 확인 | 승인 상태까지 확인 | 강화됨 |
+
+→ 권한이 느슨해진 곳은 없고, 두 군데가 오히려 강화됨. 위 판정은 Phase 2에서 테스트로 고정했다.
+
 ### 남은 수동 검증 체크리스트
 
 개발 서버(`yarn dev`)에서 구글 로그인 후 각 항목이 **페이지 전체 리로드 없이** 동작하는지 확인:
@@ -84,16 +99,28 @@
 
 ---
 
-## Phase 2 — 테스트 도입 (Vitest) ⬜ 예정
+## Phase 2 — 테스트 도입 (Vitest) ✅ 완료
 
-`vitest` + `@vitejs/plugin-react` devDependency 추가, `vitest.config.ts` 생성, `package.json`에 `"test": "vitest run"` 추가.
+운영 DB가 실데이터라 수동 테스트가 어려운 상황이라, **DB 없이 검증 가능한 로직**을 테스트로 고정했다.
 
-대상(순수 로직 + 버그 이력이 있는 곳만):
+- 의존성: `vitest@5` + peer로 요구되는 `vite@7` (yarn v1은 peer를 자동 설치하지 않음). 컴포넌트 테스트를 하지 않으므로 jsdom·React 플러그인은 넣지 않았다.
+- 설정: `vitest.config.ts` (`@` alias → `src`, `environment: 'node'`), 스크립트 `yarn test` / `yarn test:watch`.
 
-- `src/utils/grade.ts` — `getSchoolYearInKst`(1~2월은 전년도 학사연도), `getGradeLabelByBirthDateInKst`(학년/유아부 경계)
-- `src/utils/date.ts` — `formatDateToKoreanYmd`, `getKoreanDateParts`, `getCurrentAgeInKst`(생일 전/후 만 나이 경계). **UTC 기준으로 날짜가 밀리는 케이스 필수 포함**
-- `src/lib/student-sort.ts` — 정렬 순서(출생연도 → 한글 이름)
-- `src/proxy.ts` — `getToken` 모킹으로 미로그인 리다이렉트, `PENDING`/`REJECTED` 분기, 비관리자의 `/signup-management` 차단 검증
+**테스트 72개 / 7파일, 전부 통과.**
+
+| 파일 | 커버 내용 |
+|---|---|
+| `src/utils/date.test.ts` | KST 변환, UTC 기준 날짜 밀림, 만 나이 생일 전/당일/후 경계 |
+| `src/utils/grade.test.ts` | 학사연도 3월 경계, 학년/유아부 경계, 출생연도만으로 결정되는지 |
+| `src/lib/student-sort.test.ts` | 출생연도 → 한글 이름 정렬, 원본 불변, KST 기준 연도 판정 |
+| `src/lib/validation/student.test.ts` | 전화번호 정규화·거부, 보호자 정보 all-or-nothing, 생년월일 파싱 |
+| `src/lib/validation/teacher.test.ts` | 담당학년 enum, 연락처 형식, **일반 교사의 `is_active` 무시** |
+| `src/lib/api-session.test.ts` | 미승인/거절/비관리자 403, 관리자만 통과 |
+| `src/proxy.test.ts` | 미로그인 `callback_url` 보존, PENDING/REJECTED 분기, 비관리자 `/signup-management` 차단, 캐노니컬 도메인 리다이렉트 |
+
+검증: `yarn test`, `yarn tsc --noEmit`, `yarn lint`, `yarn prettier --check` 모두 통과. 추가로 `grade.ts`의 학사연도 경계를 일부러 깨뜨려 테스트가 실제로 실패하는지(회귀 감지) 확인 후 원복함.
+
+부수 변경: `.prettierrc`의 `importOrder`에 `"^node:"` 그룹을 마지막에 추가. eslint(`import/order`의 `groups`에 `builtin` 미포함 → 빌트인이 마지막)와 prettier(알파벳순 → `node:`가 앞)가 충돌해 node 빌트인을 import하는 파일이 두 검사를 동시에 통과할 수 없었다.
 
 **Playwright는 도입하지 않기로 결정.** 근거: (1) CI(`.github/workflows`)가 없어 자동 실행 경로가 없고, (2) 가장 검증하고 싶은 구글 OAuth 로그인은 Google이 자동화 브라우저를 차단해 e2e 재현이 안 되며, (3) e2e가 커버할 인증 가드 로직은 `proxy.ts` 단위 테스트가 브라우저 없이 더 싸게 커버한다. 나중에 CI를 붙이거나 인증 e2e가 필요해지면 `AUTH_SECRET`으로 next-auth JWT 쿠키를 직접 발급해 주입하는 방식으로 확장한다.
 
@@ -120,3 +147,4 @@
 
 - 저장소에 prettier 포맷 불일치 파일이 다수 존재(`src/proxy.ts`, `src/lib/auth.ts`, `src/components/layout/AppShell.tsx` 등 40여 개). 이번 작업에서는 신규/재작성 파일만 포맷했다. 일괄 정리하려면 별도 커밋으로 분리할 것.
 - 학생 목록의 "학생 등록"·"수정"은 여전히 별도 페이지로 이동한다(폼 자체는 클라이언트화 완료). 모달 방식으로 바꿀지는 사용해보고 판단.
+- **학년 표시 버그(기존부터 존재, 미수정)**: `getGradeLabelByBirthDateInKst`는 6학년을 넘는 연령도 `유아부`로 반환한다(`gradeNumber > 6`이 else로 떨어짐). 졸업생 분리 조건은 "만 14세 이상 + 3월 이후"라서, 그 사이 구간(예: 2026학년도의 2013년생 = 중1)이 **유아부로 표시**된다. `src/utils/grade.test.ts`에 현재 동작으로 문서화해 둠. 고치려면 `중등부`/`졸업` 같은 라벨을 추가할지 정책 결정이 필요하다.

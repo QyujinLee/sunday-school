@@ -66,8 +66,10 @@ Next.js(App Router, v16) · TypeScript · Auth.js(next-auth v4) + Google OAuth �
 
 ## 테스트 정책
 
-- 기존에는 자동화 테스트가 전혀 없었음(lint+tsc+build만으로 검증). 다만 학년/날짜 계산처럼 순수 로직이면서 과거 버그 이력이 있는 영역은 회귀 방지 가치가 커서 **Vitest 단위 테스트**를 우선 도입한다(대상: `src/utils/grade.ts`, `src/utils/date.ts` 등 순수 함수).
-- 로그인 리다이렉트, 출석 체크 등 핵심 플로우는 필요 시 **Playwright e2e 스모크 테스트 1~2개** 정도로 최소한만 유지(무료 운영 원칙상 무거운 풀 스위트는 지양).
+- **Vitest 단위 테스트**를 사용한다(`yarn test`). 설정은 `vitest.config.ts`, 테스트 파일은 대상 파일 옆에 `*.test.ts`로 둔다.
+- 테스트 대상은 **DB 없이 검증 가능한 순수 로직과 가드**로 한정한다: 날짜/학년 계산(`src/utils/`), 정렬(`src/lib/student-sort.ts`), 입력 검증(`src/lib/validation/`), 세션 가드(`src/lib/api-session.ts`), 라우트 가드(`src/proxy.ts`).
+- 운영 DB가 실데이터라 수동 테스트가 어렵다. **권한 판정과 입력 검증을 바꿀 때는 반드시 테스트를 먼저/함께 갱신한다.**
+- Prisma 호출 자체를 모킹해 CRUD를 테스트하지는 않는다(모킹 비용 대비 가치 낮음). 브라우저 e2e(Playwright)도 도입하지 않는다 — CI가 없고 Google OAuth 로그인이 자동화 브라우저에서 차단되기 때문.
 - 트리비얼한 한 줄짜리 함수/컴포넌트에는 테스트를 강제하지 않는다.
 
 ## 필수 검증 절차 (배포 전)
@@ -76,8 +78,11 @@ Next.js(App Router, v16) · TypeScript · Auth.js(next-auth v4) + Google OAuth �
 yarn lint
 yarn prettier --check "src/**/*.{ts,tsx,scss}" "src/proxy.ts"
 yarn tsc --noEmit
+yarn test
 yarn prisma validate   # 스키마 변경 시
 ```
+
+> `yarn build`는 `prisma migrate deploy`가 포함되어 실제 DB를 건드린다. 빌드만 확인하려면 `yarn dotenv -e .env.local -- next build`를 사용한다.
 
 ## 인코딩 안전 원칙
 

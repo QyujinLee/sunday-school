@@ -18,7 +18,8 @@
     "<THIRD_PARTY_MODULES>",
     "^@/(.*)$",
     "^~/(.*)$",
-    "^[./]"
+    "^[./]",
+    "^node:"
   ],
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true
