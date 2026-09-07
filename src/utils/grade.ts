@@ -1,6 +1,7 @@
 import { formatDateToKoreanYmd, getKoreanYear } from '@/utils/date';
 
 export type StudentGradeLabel =
+  | '졸업생'
   | '6학년'
   | '5학년'
   | '4학년'
@@ -23,6 +24,7 @@ export function getSchoolYearInKst(baseDate: Date = new Date()): number {
 
 /**
  * 생년월일을 기준으로 한국 시간 학사연도에 맞는 학년 라벨을 반환한다.
+ * 초등 6학년을 넘긴 연령은 졸업생, 취학 전 연령은 유아부로 분류한다.
  */
 export function getGradeLabelByBirthDateInKst(
   birthDate: Date,
@@ -32,9 +34,20 @@ export function getGradeLabelByBirthDateInKst(
   const birthYearInKst = getKoreanYear(birthDate);
   const gradeNumber = schoolYear - birthYearInKst - 6;
 
-  if (gradeNumber >= 1 && gradeNumber <= 6) {
+  if (gradeNumber > 6) {
+    return '졸업생';
+  }
+
+  if (gradeNumber >= 1) {
     return `${gradeNumber}학년` as StudentGradeLabel;
   }
 
   return '유아부';
+}
+
+/**
+ * 생년월일이 졸업생(초등 6학년 초과) 연령인지 확인한다.
+ */
+export function isGraduateByBirthDateInKst(birthDate: Date, baseDate: Date = new Date()): boolean {
+  return getGradeLabelByBirthDateInKst(birthDate, baseDate) === '졸업생';
 }

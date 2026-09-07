@@ -44,7 +44,7 @@ type AttendanceDashboardProps = {
   } | null;
 };
 
-const GRADE_GROUP_ORDER = ['6학년', '5학년', '4학년', '3학년', '2학년', '1학년', '유아부'] as const;
+const GRADE_GROUP_ORDER = ['졸업생', '6학년', '5학년', '4학년', '3학년', '2학년', '1학년', '유아부'] as const;
 
 /**
  * 분기 생일자 목록을 학년별로 그룹화한다.

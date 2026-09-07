@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getGradeLabelByBirthDateInKst, getSchoolYearInKst } from '@/utils/grade';
+import { getGradeLabelByBirthDateInKst, getSchoolYearInKst, isGraduateByBirthDateInKst } from '@/utils/grade';
 
 /**
  * 한국시간 자정 기준 Date를 만든다.
@@ -62,10 +62,32 @@ describe('getGradeLabelByBirthDateInKst', () => {
     expect(getGradeLabelByBirthDateInKst(new Date('2018-12-31T15:00:00Z'), kst('2026-03-01'))).toBe('1학년');
   });
 
-  // 알려진 동작: 6학년을 넘어선 연령(중학생)도 유아부로 떨어진다.
-  // 학생 목록에서는 만 14세 이상 + 3월 이후 조건으로 졸업생 분리를 하기 때문에
-  // 그 사이 구간(예: 2026학년도의 2013년생)은 유아부로 표시된다.
-  it('6학년을 넘어선 연령도 현재 구현에서는 유아부로 분류된다', () => {
-    expect(getGradeLabelByBirthDateInKst(kst('2013-05-05'), kst('2026-03-01'))).toBe('유아부');
+  it('6학년을 넘어선 연령은 졸업생으로 분류한다', () => {
+    // 2026학년도 기준 2014년생이 6학년, 2013년생부터 졸업생
+    expect(getGradeLabelByBirthDateInKst(kst('2013-05-05'), kst('2026-03-01'))).toBe('졸업생');
+    expect(getGradeLabelByBirthDateInKst(kst('2005-05-05'), kst('2026-03-01'))).toBe('졸업생');
+  });
+
+  it('6학년과 졸업생 경계는 3월 1일에 넘어간다', () => {
+    // 2013년생: 2025학년도(2026-02-28 기준)에는 아직 6학년
+    expect(getGradeLabelByBirthDateInKst(kst('2013-05-05'), kst('2026-02-28'))).toBe('6학년');
+    // 새 학년이 시작되는 3월 1일부터 졸업생
+    expect(getGradeLabelByBirthDateInKst(kst('2013-05-05'), kst('2026-03-01'))).toBe('졸업생');
+  });
+});
+
+describe('isGraduateByBirthDateInKst', () => {
+  it('졸업생 연령이면 true를 반환한다', () => {
+    expect(isGraduateByBirthDateInKst(kst('2013-05-05'), kst('2026-03-01'))).toBe(true);
+  });
+
+  it('6학년 이하면 false를 반환한다', () => {
+    expect(isGraduateByBirthDateInKst(kst('2014-05-05'), kst('2026-03-01'))).toBe(false);
+    expect(isGraduateByBirthDateInKst(kst('2021-05-05'), kst('2026-03-01'))).toBe(false);
+  });
+
+  it('생일이 지나지 않아도 학사연도만으로 판정한다(만 나이 무관)', () => {
+    // 2013-12-31생은 2026-03-01 시점에 만 12세지만 학년 기준으로는 졸업생
+    expect(isGraduateByBirthDateInKst(kst('2013-12-31'), kst('2026-03-01'))).toBe(true);
   });
 });

@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { sortStudentsByGradeDescThenName } from '@/lib/student-sort';
 import { getWeeklyCalendarSummary } from '@/server/calendar/google-calendar';
 import { formatDateToKoreanYmd, getKoreanYear } from '@/utils/date';
-import { getGradeLabelByBirthDateInKst } from '@/utils/grade';
+import { getGradeLabelByBirthDateInKst, type StudentGradeLabel } from '@/utils/grade';
 
 const ATTENDANCE_TAB_KEYS = [
   'this_week',
@@ -35,14 +35,8 @@ export const TALENT_ADJUST_VALUES = new Set(['3', '2', '1', '-1']);
 
 export type AttendanceTabKey = (typeof ATTENDANCE_TAB_KEYS)[number];
 
-type GradeLabel =
-  | '6\uD559\uB144'
-  | '5\uD559\uB144'
-  | '4\uD559\uB144'
-  | '3\uD559\uB144'
-  | '2\uD559\uB144'
-  | '1\uD559\uB144'
-  | '\uC720\uC544\uBD80';
+// Grade labels are defined only in src/utils/grade.ts (see CLAUDE.md).
+type GradeLabel = StudentGradeLabel;
 
 export const ATTENDANCE_TABS: ReadonlyArray<{ key: AttendanceTabKey; label: string }> = [
   { key: 'this_week', label: '\uAE08\uC8FC \uCD9C\uC11D' },

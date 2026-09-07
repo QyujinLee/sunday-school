@@ -5,8 +5,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { sortStudentsByGradeDescThenName } from '@/lib/student-sort';
-import { formatDateToKoreanYmd, getCurrentAgeInKst, getKoreanDateParts, getKoreanYear } from '@/utils/date';
-import { getGradeLabelByBirthDateInKst } from '@/utils/grade';
+import { formatDateToKoreanYmd, getKoreanYear } from '@/utils/date';
+import { getGradeLabelByBirthDateInKst, isGraduateByBirthDateInKst, type StudentGradeLabel } from '@/utils/grade';
 import CollapsiblePanel from './CollapsiblePanel';
 import StudentAttendanceLedgerButton from './StudentAttendanceLedgerButton';
 import StudentDetailButton from './StudentDetailButton';
@@ -39,7 +39,7 @@ type StudentRow = {
     relationship: 'FATHER' | 'MOTHER' | 'GRANDFATHER' | 'GRANDMOTHER' | 'ETC';
     phone: string;
   } | null;
-  gradeLabel: Exclude<StudentGradeTab, '전체'>;
+  gradeLabel: StudentGradeLabel;
 };
 
 /**
@@ -104,24 +104,6 @@ function getRelationshipLabel(relationship: 'FATHER' | 'MOTHER' | 'GRANDFATHER' 
   }
 
   return '기타';
-}
-
-/**
- * 현재 날짜 기준 만 나이를 계산한다.
- */
-function getCurrentAge(birthDate: Date): number {
-  return getCurrentAgeInKst(birthDate);
-}
-
-/**
- * 현재 날짜 기준 졸업 조건(만 14세 이상 + 3월 이후)에 해당하는지 반환한다.
- */
-function isGraduateByCurrentDate(birthDate: Date): boolean {
-  const todayInKst = getKoreanDateParts(new Date());
-  const isAfterMarch = todayInKst.month >= 3;
-  const age = getCurrentAge(birthDate);
-
-  return isAfterMarch && age >= 14;
 }
 
 /**
@@ -316,8 +298,8 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
     }))
     .sort((a, b) => a.name.localeCompare(b.name, 'ko-KR'));
 
-  const graduateStudents = studentsWithGrade.filter((student) => isGraduateByCurrentDate(student.birthDate));
-  const activeStudents = studentsWithGrade.filter((student) => !isGraduateByCurrentDate(student.birthDate));
+  const graduateStudents = studentsWithGrade.filter((student) => isGraduateByBirthDateInKst(student.birthDate));
+  const activeStudents = studentsWithGrade.filter((student) => !isGraduateByBirthDateInKst(student.birthDate));
   const filteredStudents = sortStudentsBySelectedGradeTab(
     filterStudentsByGradeTab(activeStudents, selectedGradeTab),
   );
@@ -372,7 +354,7 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
 
       <CollapsiblePanel
         title="졸업생"
-        description="현재 날짜 기준 만 14세 이상이고 3월 이후인 학생은 자동으로 졸업생 목록으로 이동합니다."
+        description="초등 6학년을 마친 학생은 새 학년이 시작되는 3월부터 자동으로 졸업생 목록으로 이동합니다."
         storageKey="students_graduates_collapsible"
       >
         <div className="sm:hidden">
