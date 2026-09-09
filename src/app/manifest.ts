@@ -21,7 +21,8 @@ export default function manifest(): MetadataRoute.Manifest {
         type: 'image/png',
       },
       {
-        src: '/app-icons/icon-512.png',
+        // 마스커블 전용: 불투명 흰 배경 + 그림을 세이프존(중심 반지름 40%) 안에 배치
+        src: '/app-icons/icon-512-maskable.png',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'maskable',
