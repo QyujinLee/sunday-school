@@ -1,6 +1,6 @@
 ﻿import type { Metadata } from 'next';
 
-import ApprovalStatusCard from '@/components/common/ApprovalStatusCard';
+import StatusCard from '@/components/common/StatusCard';
 
 export const metadata: Metadata = {
   title: '승인 대기',
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
  */
 export default function PendingPage() {
   return (
-    <ApprovalStatusCard
+    <StatusCard
       title="승인 대기 중입니다"
       description={`관리자 승인 후 서비스를 이용할 수 있습니다. \n승인이 완료될 때까지 잠시만 기다려 주세요.`}
     />

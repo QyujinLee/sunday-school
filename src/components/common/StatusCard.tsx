@@ -1,11 +1,18 @@
+import type { ReactNode } from 'react';
+
 import SignOutButton from '@/components/common/SignOutButton';
 
-type ApprovalStatusCardProps = {
+type StatusCardProps = {
   title: string;
   description: string;
+  action?: ReactNode;
 };
 
-export default function ApprovalStatusCard({ title, description }: ApprovalStatusCardProps) {
+/**
+ * 안내 문구와 동작 버튼을 담은 상태 카드를 렌더링한다.
+ * action을 넘기지 않으면 로그아웃 버튼을 표시한다.
+ */
+export default function StatusCard({ title, description, action }: StatusCardProps) {
   return (
     <main className="relative grid min-h-[calc(100dvh-var(--header-height-mobile))] place-items-center overflow-hidden bg-[var(--color-surface-soft)] px-4 py-6 sm:min-h-[calc(100dvh-var(--header-height-desktop))] sm:py-8">
       <div className="pointer-events-none absolute inset-0">
@@ -17,9 +24,7 @@ export default function ApprovalStatusCard({ title, description }: ApprovalStatu
         <h1 className="text-center text-2xl font-bold text-[var(--color-text)] sm:text-3xl">{title}</h1>
         <p className="mt-3 whitespace-pre-line text-center text-sm text-[var(--color-muted)]">{description}</p>
 
-        <div className="mt-8">
-          <SignOutButton className="w-full" />
-        </div>
+        <div className="mt-8">{action ?? <SignOutButton className="w-full" />}</div>
       </section>
     </main>
   );

@@ -1,6 +1,6 @@
 ﻿import type { Metadata } from 'next';
 
-import ApprovalStatusCard from '@/components/common/ApprovalStatusCard';
+import StatusCard from '@/components/common/StatusCard';
 
 export const metadata: Metadata = {
   title: '가입 거절',
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
  */
 export default function RejectedPage() {
   return (
-    <ApprovalStatusCard
+    <StatusCard
       title="가입이 거절되었습니다"
       description="관리자가 가입 요청을 거절했습니다. 문의가 필요하면 관리자에게 직접 연락해 주세요."
     />
