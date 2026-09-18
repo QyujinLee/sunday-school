@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
 const PUBLIC_PATHS = ['/', '/login'];
+const GUEST_PATH_PREFIX = '/guest';
 const PENDING_PATH = '/pending';
 const REJECTED_PATH = '/rejected';
 
@@ -29,6 +30,14 @@ function getCanonicalOrigin(): URL | null {
  */
 function isAlwaysPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.includes(pathname);
+}
+
+/**
+ * 게스트 모드 경로인지 확인한다.
+ * 데모 데이터만 노출하므로 로그인 여부와 승인 상태에 관계없이 통과시킨다.
+ */
+function isGuestPath(pathname: string): boolean {
+  return pathname === GUEST_PATH_PREFIX || pathname.startsWith(`${GUEST_PATH_PREFIX}/`);
 }
 
 /**
@@ -84,7 +93,7 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL('/signup-management', req.url));
   }
 
-  if (isBypassPath(pathname)) {
+  if (isBypassPath(pathname) || isGuestPath(pathname)) {
     return NextResponse.next();
   }
 

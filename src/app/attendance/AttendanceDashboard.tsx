@@ -42,6 +42,7 @@ type AttendanceDashboardProps = {
     pulpitLeader: string | null;
     weeklySchedules: string[];
   } | null;
+  canRefreshCalendar?: boolean;
 };
 
 const GRADE_GROUP_ORDER = ['졸업생', '6학년', '5학년', '4학년', '3학년', '2학년', '1학년', '유아부'] as const;
@@ -104,6 +105,7 @@ export default function AttendanceDashboard({
   weeklyTrend,
   currentWeekCalendarSummary,
   nextWeekCalendarSummary,
+  canRefreshCalendar = true,
 }: AttendanceDashboardProps) {
   const birthdayGroups = groupBirthdayStudentsByGrade(quarterlyBirthdayStudents);
 
@@ -115,7 +117,7 @@ export default function AttendanceDashboard({
         <article className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4 lg:col-span-2">
           <div className="flex items-center justify-between gap-2">
             <h3 className="text-[length:var(--text-base)] font-semibold text-[var(--color-text)]">주간 일정</h3>
-            <RefreshCalendarButton />
+            {canRefreshCalendar ? <RefreshCalendarButton /> : null}
           </div>
 
           <div className="mt-3 grid gap-4 md:grid-cols-2">

@@ -64,6 +64,36 @@ describe('proxy - 미로그인', () => {
     expect(redirectTarget(await proxy(request('/api/auth/callback/google')))).toBeNull();
     expect(getTokenMock).not.toHaveBeenCalled();
   });
+
+  it('게스트 경로는 로그인 없이 통과시킨다', async () => {
+    expect(redirectTarget(await proxy(request('/guest')))).toBeNull();
+    expect(redirectTarget(await proxy(request('/guest/students')))).toBeNull();
+  });
+
+  it('게스트 접두사만 같은 경로는 통과시키지 않는다', async () => {
+    expect(redirectTarget(await proxy(request('/guestbook')))).toBe('/login?callback_url=%2Fguestbook');
+  });
+});
+
+describe('proxy - 게스트 경로', () => {
+  it('승인 대기 교사도 게스트 경로는 그대로 볼 수 있다', async () => {
+    getTokenMock.mockResolvedValue({ approvalStatus: 'PENDING', role: 'TEACHER' });
+
+    expect(redirectTarget(await proxy(request('/guest/dashboard')))).toBeNull();
+  });
+
+  it('승인된 교사도 게스트 경로는 그대로 볼 수 있다', async () => {
+    getTokenMock.mockResolvedValue({ approvalStatus: 'APPROVED', role: 'TEACHER' });
+
+    expect(redirectTarget(await proxy(request('/guest')))).toBeNull();
+  });
+
+  it('게스트 경로는 실데이터 경로를 열어주지 않는다', async () => {
+    getTokenMock.mockResolvedValue(null);
+
+    expect(redirectTarget(await proxy(request('/students')))).toBe('/login?callback_url=%2Fstudents');
+    expect(redirectTarget(await proxy(request('/signup-management')))).toBe('/login?callback_url=%2Fsignup-management');
+  });
 });
 
 describe('proxy - 승인 상태 분기', () => {
