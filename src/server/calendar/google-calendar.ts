@@ -31,7 +31,7 @@ const weeklyCalendarSnapshotCache = new Map<string, WeeklyCalendarSummary>();
  */
 export async function getWeeklyCalendarSummary(
   sundayStartDate: Date,
-  nextSundayDate: Date,
+  nextSundayDate: Date
 ): Promise<WeeklyCalendarSummary | null> {
   const calendarId = process.env.GOOGLE_CALENDAR_ID;
   const apiKey = process.env.GOOGLE_CALENDAR_API_KEY;
@@ -42,7 +42,7 @@ export async function getWeeklyCalendarSummary(
   }
 
   const requestUrl = new URL(
-    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`,
+    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`
   );
 
   requestUrl.searchParams.set('key', apiKey);
@@ -177,10 +177,7 @@ function extractRoleFromTitle(title: string, roleLabel: '사회' | '단상'): st
 
   const escapedRoleLabel = roleLabel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const candidates = [
-    new RegExp(
-      `\\[?\\s*${escapedRoleLabel}\\s*\\]?\\s*[:：]?\\s*([^|,/\\\\n]+?)(?=\\s*(?:\\||\\/|,|$))`,
-      'u',
-    ),
+    new RegExp(`\\[?\\s*${escapedRoleLabel}\\s*\\]?\\s*[:：]?\\s*([^|,/\\\\n]+?)(?=\\s*(?:\\||\\/|,|$))`, 'u'),
     new RegExp(`${escapedRoleLabel}\\s*[:：]\\s*([^|,/\\\\n]+)`, 'u'),
   ];
 
@@ -218,6 +215,11 @@ function extractWeeklySchedules(description: string): string[] {
   const scheduleLines = scheduleHeaderIndex >= 0 ? lines.slice(scheduleHeaderIndex + 1) : lines;
 
   return scheduleLines
-    .map((line) => line.replace(/^\d+[.)]\s*/, '').replace(/^[-*]\s*/, '').trim())
+    .map((line) =>
+      line
+        .replace(/^\d+[.)]\s*/, '')
+        .replace(/^[-*]\s*/, '')
+        .trim()
+    )
     .filter(Boolean);
 }

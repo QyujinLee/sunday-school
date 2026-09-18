@@ -62,10 +62,8 @@ export const authOptions: NextAuthOptions = {
       }
 
       const nowTimestampSeconds = Math.floor(Date.now() / 1000);
-      const lastSyncedAtSeconds =
-        typeof token.teacherSyncedAt === 'number' ? token.teacherSyncedAt : 0;
-      const hasTeacherSnapshot =
-        Boolean(token.teacherId) && Boolean(token.role) && Boolean(token.approvalStatus);
+      const lastSyncedAtSeconds = typeof token.teacherSyncedAt === 'number' ? token.teacherSyncedAt : 0;
+      const hasTeacherSnapshot = Boolean(token.teacherId) && Boolean(token.role) && Boolean(token.approvalStatus);
       const shouldSkipDatabaseSync =
         hasTeacherSnapshot &&
         !user &&

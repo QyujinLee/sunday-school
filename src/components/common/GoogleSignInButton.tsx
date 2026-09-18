@@ -58,7 +58,7 @@ export default function GoogleSignInButton({ callbackUrl = '/' }: GoogleSignInBu
             isAndroid: false,
           }
         : detectBrowserContext(window.navigator.userAgent),
-    [],
+    []
   );
 
   /**
@@ -92,11 +92,7 @@ export default function GoogleSignInButton({ callbackUrl = '/' }: GoogleSignInBu
         <p className="text-xs text-[var(--color-muted)]">
           Chrome 또는 Safari 같은 기본 브라우저에서 다시 열어 로그인해 주세요.
         </p>
-        <button
-          type="button"
-          onClick={handleOpenExternalBrowser}
-          className="btn btn-secondary btn-md btn-full"
-        >
+        <button type="button" onClick={handleOpenExternalBrowser} className="btn btn-secondary btn-md btn-full">
           외부 브라우저로 열기
         </button>
       </div>

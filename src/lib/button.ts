@@ -35,4 +35,3 @@ export function getButtonClassName({
 
   return classNames.join(' ');
 }
-

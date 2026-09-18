@@ -137,11 +137,11 @@ export async function GET(_request: Request, context: RouteContext) {
   });
 
   const statusByDate = new Map(
-    attendanceRows.map((attendance) => [formatDateToKoreanYmd(attendance.attendanceDate), attendance.status]),
+    attendanceRows.map((attendance) => [formatDateToKoreanYmd(attendance.attendanceDate), attendance.status])
   );
 
   const statuses = Object.fromEntries(
-    weeks.map((week) => [week.date, statusByDate.get(week.date) ?? AttendanceStatus.ABSENT]),
+    weeks.map((week) => [week.date, statusByDate.get(week.date) ?? AttendanceStatus.ABSENT])
   );
 
   return NextResponse.json({

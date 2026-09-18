@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+
 import { AttendanceStatus } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 
@@ -161,7 +162,7 @@ export async function POST(request: Request) {
         getCurrentSundayKstDate(),
         body.expected_current_status,
         body.next_status,
-        validatedSession.teacherId,
+        validatedSession.teacherId
       );
 
       if (result.result === 'stale_state') {
@@ -195,7 +196,7 @@ export async function POST(request: Request) {
         Number(amountString),
         validatedSession.teacherId,
         attendanceDate,
-        nextSundayDate,
+        nextSundayDate
       );
 
       return NextResponse.json({

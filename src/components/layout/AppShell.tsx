@@ -182,11 +182,7 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
             </div>
           </div>
         ) : (
-          <Link
-            href="/login"
-            prefetch={false}
-            className="btn btn-secondary btn-md"
-          >
+          <Link href="/login" prefetch={false} className="btn btn-secondary btn-md">
             로그인
           </Link>
         )}

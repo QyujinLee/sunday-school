@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 type AttendanceTrendPoint = {
   label: string;
@@ -28,7 +20,12 @@ export default function AttendanceTrendChart({ data }: AttendanceTrendChartProps
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" />
-          <XAxis dataKey="label" tick={{ fontSize: 11, fill: 'var(--color-muted)' }} axisLine={false} tickLine={false} />
+          <XAxis
+            dataKey="label"
+            tick={{ fontSize: 11, fill: 'var(--color-muted)' }}
+            axisLine={false}
+            tickLine={false}
+          />
           <YAxis
             allowDecimals={false}
             tick={{ fontSize: 11, fill: 'var(--color-muted)' }}

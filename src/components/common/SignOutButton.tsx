@@ -18,11 +18,7 @@ export default function SignOutButton({ className = '' }: SignOutButtonProps) {
   };
 
   return (
-    <button
-      type="button"
-      onClick={handleSignOutClick}
-      className={`btn btn-secondary btn-md ${className}`}
-    >
+    <button type="button" onClick={handleSignOutClick} className={`btn btn-secondary btn-md ${className}`}>
       로그아웃
     </button>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 import { useToast } from '@/components/common/ToastProvider';

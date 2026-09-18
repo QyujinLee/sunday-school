@@ -1,6 +1,6 @@
 ﻿'use client';
 
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 import ActionModal, { type ActionModalButton } from '@/components/common/ActionModal';
 
@@ -58,8 +58,7 @@ const TEAM_STYLE_BY_COLOR: Record<
   yellow: {
     wrapperClassName: 'border-[#e7c25d] bg-[rgb(231_194_93/0.15)]',
     inputClassName: 'border-[#edd588] focus:border-[#d3a937]',
-    validateButtonClassName:
-      'border-[#d3a937] bg-[rgb(231_194_93/0.3)] text-[#8f6d17] hover:bg-[rgb(231_194_93/0.44)]',
+    validateButtonClassName: 'border-[#d3a937] bg-[rgb(231_194_93/0.3)] text-[#8f6d17] hover:bg-[rgb(231_194_93/0.44)]',
     initializeButtonClassName: 'border-[#d3a937] bg-[#d3a937] text-white hover:bg-[#be962f]',
     answerButtonClassName: 'border-[#d3a937] bg-[var(--color-surface)] text-[#8f6d17] hover:bg-[rgb(231_194_93/0.2)]',
     historyBoxClassName: 'bg-[rgb(231_194_93/0.22)]',
@@ -170,7 +169,7 @@ export default function TeamBlock({
         autoClose: true,
       },
     ],
-    [],
+    []
   );
 
   useEffect(() => {

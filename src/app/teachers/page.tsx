@@ -1,5 +1,7 @@
 ﻿import type { Metadata } from 'next';
+
 import Link from 'next/link';
+
 import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/auth';
@@ -222,7 +224,11 @@ export default async function TeachersPage() {
               </tr>
             </thead>
             <tbody>
-              <TeacherTableRows teachers={inactiveTeachers} canManageAll={isAdmin} currentTeacherId={currentTeacherId} />
+              <TeacherTableRows
+                teachers={inactiveTeachers}
+                canManageAll={isAdmin}
+                currentTeacherId={currentTeacherId}
+              />
             </tbody>
           </table>
         </div>
@@ -230,4 +236,3 @@ export default async function TeachersPage() {
     </main>
   );
 }
-

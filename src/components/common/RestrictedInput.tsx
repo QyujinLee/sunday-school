@@ -29,8 +29,7 @@ function sanitizeInputValue(value: string, filterType: ExtendedFilterType, maxLe
     return `${onlyDigits.slice(0, 3)}-${onlyDigits.slice(3, 7)}-${onlyDigits.slice(7, 11)}`;
   }
 
-  const sanitizedValue =
-    filterType === 'korean' ? value.replace(/[^가-힣\s]/g, '') : value.replace(/\D/g, '');
+  const sanitizedValue = filterType === 'korean' ? value.replace(/[^가-힣\s]/g, '') : value.replace(/\D/g, '');
 
   if (typeof maxLength === 'number' && maxLength > 0) {
     return sanitizedValue.slice(0, maxLength);
@@ -42,12 +41,7 @@ function sanitizeInputValue(value: string, filterType: ExtendedFilterType, maxLe
 /**
  * 지정한 문자 규칙만 허용하는 인풋 컴포넌트다.
  */
-export default function RestrictedInput({
-  filterType,
-  onInput,
-  maxLength,
-  ...props
-}: RestrictedInputProps) {
+export default function RestrictedInput({ filterType, onInput, maxLength, ...props }: RestrictedInputProps) {
   /**
    * 입력 시 허용하지 않는 문자를 즉시 제거한다.
    */

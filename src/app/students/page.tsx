@@ -1,12 +1,15 @@
 ﻿import type { Metadata } from 'next';
+
 import Link from 'next/link';
+
 import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { sortStudentsByGradeDescThenName } from '@/lib/student-sort';
 import { formatDateToKoreanYmd, getKoreanYear } from '@/utils/date';
-import { getGradeLabelByBirthDateInKst, isGraduateByBirthDateInKst, type StudentGradeLabel } from '@/utils/grade';
+import { type StudentGradeLabel, getGradeLabelByBirthDateInKst, isGraduateByBirthDateInKst } from '@/utils/grade';
+
 import CollapsiblePanel from './CollapsiblePanel';
 import StudentAttendanceLedgerButton from './StudentAttendanceLedgerButton';
 import StudentDetailButton from './StudentDetailButton';
@@ -168,11 +171,7 @@ function StudentCardList({ students }: { students: StudentRow[] }) {
 
           <div className="mt-3 flex justify-end">
             <StudentAttendanceLedgerButton studentId={student.id} />
-            <Link
-              href={`/students/${student.id}/edit`}
-              prefetch={false}
-              className="btn btn-secondary btn-sm ml-2"
-            >
+            <Link href={`/students/${student.id}/edit`} prefetch={false} className="btn btn-secondary btn-sm ml-2">
               수정
             </Link>
           </div>
@@ -221,11 +220,7 @@ function StudentsTableRows({ students }: { students: StudentRow[] }) {
             guardianPhone={student.guardianContact?.phone ?? '-'}
           />
           <StudentAttendanceLedgerButton studentId={student.id} />
-          <Link
-            href={`/students/${student.id}/edit`}
-            prefetch={false}
-            className="btn btn-secondary btn-sm"
-          >
+          <Link href={`/students/${student.id}/edit`} prefetch={false} className="btn btn-secondary btn-sm">
             수정
           </Link>
         </div>
@@ -300,9 +295,7 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
 
   const graduateStudents = studentsWithGrade.filter((student) => isGraduateByBirthDateInKst(student.birthDate));
   const activeStudents = studentsWithGrade.filter((student) => !isGraduateByBirthDateInKst(student.birthDate));
-  const filteredStudents = sortStudentsBySelectedGradeTab(
-    filterStudentsByGradeTab(activeStudents, selectedGradeTab),
-  );
+  const filteredStudents = sortStudentsBySelectedGradeTab(filterStudentsByGradeTab(activeStudents, selectedGradeTab));
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6">
@@ -312,11 +305,7 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
           <h1 className="text-2xl font-bold text-[var(--color-text)]">학생 관리</h1>
           <div className="flex items-center gap-2">
             {isAdmin ? <TalentResetButton /> : null}
-            <Link
-              href="/students/new"
-              prefetch={false}
-              className="btn btn-primary btn-md"
-            >
+            <Link href="/students/new" prefetch={false} className="btn btn-primary btn-md">
               학생 등록
             </Link>
           </div>
@@ -367,6 +356,3 @@ export default async function StudentsPage({ searchParams }: StudentsPageProps) 
     </main>
   );
 }
-
-
-

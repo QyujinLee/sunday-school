@@ -1,4 +1,5 @@
 ﻿import { ImageResponse } from 'next/og';
+
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -26,51 +27,49 @@ export default async function OpengraphImage() {
   const [logoDataUrl, textLogoDataUrl] = await Promise.all([toDataUrl(logoPath), toDataUrl(textLogoPath)]);
 
   return new ImageResponse(
-    (
+    <div
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        overflow: 'hidden',
+        background:
+          'radial-gradient(circle at 22% 18%, rgba(255,255,255,0.3) 0, rgba(255,255,255,0) 44%), radial-gradient(circle at 80% 80%, rgba(255,255,255,0.18) 0, rgba(255,255,255,0) 42%), linear-gradient(145deg, #6495ED 0%, #5287E8 45%, #3F75D8 100%)',
+      }}
+    >
       <div
         style={{
-          width: '100%',
-          height: '100%',
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(13,31,63,0.14) 100%)',
+        }}
+      />
+
+      <div
+        style={{
+          position: 'relative',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          position: 'relative',
-          overflow: 'hidden',
-          background:
-            'radial-gradient(circle at 22% 18%, rgba(255,255,255,0.3) 0, rgba(255,255,255,0) 44%), radial-gradient(circle at 80% 80%, rgba(255,255,255,0.18) 0, rgba(255,255,255,0) 42%), linear-gradient(145deg, #6495ED 0%, #5287E8 45%, #3F75D8 100%)',
+          gap: 22,
+          width: '82%',
+          height: '78%',
+          borderRadius: 32,
+          border: '1px solid rgba(255,255,255,0.36)',
+          background: 'rgba(255,255,255,0.12)',
+          boxShadow: '0 28px 58px rgba(16, 44, 92, 0.26)',
         }}
       >
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(13,31,63,0.14) 100%)',
-          }}
-        />
-
-        <div
-          style={{
-            position: 'relative',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 22,
-            width: '82%',
-            height: '78%',
-            borderRadius: 32,
-            border: '1px solid rgba(255,255,255,0.36)',
-            background: 'rgba(255,255,255,0.12)',
-            boxShadow: '0 28px 58px rgba(16, 44, 92, 0.26)',
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={logoDataUrl} width={260} height={260} alt="서광 주일학교 로고" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={textLogoDataUrl} width={520} height={106} alt="서광 주일학교" />
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logoDataUrl} width={260} height={260} alt="서광 주일학교 로고" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={textLogoDataUrl} width={520} height={106} alt="서광 주일학교" />
       </div>
-    ),
-    size,
+    </div>,
+    size
   );
 }

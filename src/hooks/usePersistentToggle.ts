@@ -72,7 +72,7 @@ export function usePersistentToggle({
         mediaQuery.removeEventListener('change', handleViewportChange);
       };
     },
-    [defaultDesktopExpanded, eventName, storageKey],
+    [defaultDesktopExpanded, eventName, storageKey]
   );
 
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);

@@ -1,7 +1,9 @@
 ﻿'use client';
 
 import { useMemo } from 'react';
+
 import Link from 'next/link';
+
 import { AttendanceStatus, Gender } from '@prisma/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -9,9 +11,9 @@ import { useToast } from '@/components/common/ToastProvider';
 import { getButtonClassName } from '@/lib/button';
 import {
   ATTENDANCE_TABS,
+  type AttendanceTabKey,
   getGenderLabel,
   getGradeDisplayLabel,
-  type AttendanceTabKey,
 } from '@/server/attendance/service';
 import { formatDateToKoreanYmd } from '@/utils/date';
 
@@ -173,7 +175,9 @@ function TalentLogCardList({ logs }: { logs: SerializableTalentLogRow[] }) {
               {log.amount > 0 ? `+${log.amount}` : log.amount}
             </p>
           </div>
-          <p className="mt-1 break-all text-xs text-[var(--color-muted)]">처리 교사: {log.teacher?.name ?? log.teacher?.email ?? '-'}</p>
+          <p className="mt-1 break-all text-xs text-[var(--color-muted)]">
+            처리 교사: {log.teacher?.name ?? log.teacher?.email ?? '-'}
+          </p>
           <p className="mt-1 text-xs text-[var(--color-muted)]">
             시각:{' '}
             {new Intl.DateTimeFormat('ko-KR', {
@@ -220,7 +224,7 @@ export default function AttendanceInteractiveSection({
         return {
           ...current,
           studentsForTable: current.studentsForTable.map((student) =>
-            student.id === studentId ? { ...student, attendanceStatus: nextStatus } : student,
+            student.id === studentId ? { ...student, attendanceStatus: nextStatus } : student
           ),
         };
       });
@@ -242,7 +246,7 @@ export default function AttendanceInteractiveSection({
                   attendanceStatus: responsePayload.next_status,
                   currentTalent: responsePayload.current_talent,
                 }
-              : student,
+              : student
           ),
         };
       });
@@ -283,7 +287,7 @@ export default function AttendanceInteractiveSection({
         return {
           ...current,
           studentsForTable: current.studentsForTable.map((student) =>
-            student.id === studentId ? { ...student, weeklyExtraTalent: student.weeklyExtraTalent + amount } : student,
+            student.id === studentId ? { ...student, weeklyExtraTalent: student.weeklyExtraTalent + amount } : student
           ),
         };
       });
@@ -309,7 +313,7 @@ export default function AttendanceInteractiveSection({
                   weeklyExtraTalent: responsePayload.weekly_extra_talent,
                   currentTalent: responsePayload.current_talent,
                 }
-              : student,
+              : student
           ),
           talentLogs: [
             {
@@ -360,7 +364,7 @@ export default function AttendanceInteractiveSection({
   function handleToggleAttendance(
     studentId: string,
     expectedCurrentStatus: AttendanceStatus,
-    nextStatus: AttendanceStatus,
+    nextStatus: AttendanceStatus
   ) {
     toggleAttendanceMutation.mutate({
       studentId,
@@ -421,10 +425,15 @@ export default function AttendanceInteractiveSection({
             ) : (
               <ul className="grid gap-3">
                 {studentsForTable.map((student) => (
-                  <li key={student.id} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
+                  <li
+                    key={student.id}
+                    className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3"
+                  >
                     <div className="mb-2 flex items-center justify-between gap-2">
                       <p className="text-base font-semibold text-[var(--color-text)]">{student.name}</p>
-                      <p className="text-sm font-medium text-[var(--color-primary)]">{getStudentGradeDisplayLabel(student)}</p>
+                      <p className="text-sm font-medium text-[var(--color-primary)]">
+                        {getStudentGradeDisplayLabel(student)}
+                      </p>
                     </div>
                     <p className="text-sm text-[var(--color-muted)]">
                       금주 추가 달란트{' '}
@@ -478,16 +487,23 @@ export default function AttendanceInteractiveSection({
                 const nextStatus = isPresent ? AttendanceStatus.ABSENT : AttendanceStatus.PRESENT;
 
                 return (
-                  <li key={student.id} className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
+                  <li
+                    key={student.id}
+                    className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3"
+                  >
                     <div className="mb-2 flex items-center justify-between gap-2">
                       <p className="text-base font-semibold text-[var(--color-text)]">{student.name}</p>
-                      <p className="text-sm font-medium text-[var(--color-primary)]">{getStudentGradeDisplayLabel(student)}</p>
+                      <p className="text-sm font-medium text-[var(--color-primary)]">
+                        {getStudentGradeDisplayLabel(student)}
+                      </p>
                     </div>
                     <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
                       <dt className="text-[var(--color-muted)]">성별</dt>
                       <dd className="text-right text-[var(--color-text)]">{getGenderLabel(student.gender)}</dd>
                       <dt className="text-[var(--color-muted)]">생일</dt>
-                      <dd className="text-right text-[var(--color-text)]">{formatDateToKoreanYmd(new Date(student.birthDate))}</dd>
+                      <dd className="text-right text-[var(--color-text)]">
+                        {formatDateToKoreanYmd(new Date(student.birthDate))}
+                      </dd>
                     </dl>
                     <div className="mt-3 flex justify-end">
                       <button
@@ -532,7 +548,9 @@ export default function AttendanceInteractiveSection({
                 ) : (
                   studentsForTable.map((student) => (
                     <tr key={student.id} className="border-t border-[var(--color-border)]">
-                      <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{getStudentGradeDisplayLabel(student)}</td>
+                      <td className="px-2 py-2 text-sm text-[var(--color-muted)]">
+                        {getStudentGradeDisplayLabel(student)}
+                      </td>
                       <td className="px-2 py-2 text-sm font-medium text-[var(--color-text)]">{student.name}</td>
                       <td className="px-2 py-2 text-sm font-semibold text-[var(--color-text)]">
                         {student.weeklyExtraTalent > 0 ? `+${student.weeklyExtraTalent}` : student.weeklyExtraTalent}
@@ -600,10 +618,16 @@ export default function AttendanceInteractiveSection({
 
                     return (
                       <tr key={student.id} className="border-t border-[var(--color-border)]">
-                        <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{getStudentGradeDisplayLabel(student)}</td>
+                        <td className="px-2 py-2 text-sm text-[var(--color-muted)]">
+                          {getStudentGradeDisplayLabel(student)}
+                        </td>
                         <td className="px-2 py-2 text-sm font-medium text-[var(--color-text)]">{student.name}</td>
-                        <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{getGenderLabel(student.gender)}</td>
-                        <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{formatDateToKoreanYmd(new Date(student.birthDate))}</td>
+                        <td className="px-2 py-2 text-sm text-[var(--color-muted)]">
+                          {getGenderLabel(student.gender)}
+                        </td>
+                        <td className="px-2 py-2 text-sm text-[var(--color-muted)]">
+                          {formatDateToKoreanYmd(new Date(student.birthDate))}
+                        </td>
                         <td className="px-2 py-2">
                           <button
                             type="button"
@@ -666,7 +690,9 @@ export default function AttendanceInteractiveSection({
                     >
                       {log.amount > 0 ? `+${log.amount}` : log.amount}
                     </td>
-                    <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{log.teacher?.name ?? log.teacher?.email ?? '-'}</td>
+                    <td className="px-2 py-2 text-sm text-[var(--color-muted)]">
+                      {log.teacher?.name ?? log.teacher?.email ?? '-'}
+                    </td>
                     <td className="whitespace-nowrap px-2 py-2 text-sm text-[var(--color-muted)]">
                       {new Intl.DateTimeFormat('ko-KR', {
                         dateStyle: 'short',

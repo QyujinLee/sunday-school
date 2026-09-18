@@ -1,7 +1,16 @@
 ﻿'use client';
 
 import type { ReactNode } from 'react';
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { createPortal } from 'react-dom';
 
 export type ToastVariant = 'info' | 'success' | 'error';
@@ -54,7 +63,7 @@ export default function ToastProvider({ children }: ToastProviderProps) {
   const canUsePortal = useSyncExternalStore(
     () => () => undefined,
     () => true,
-    () => false,
+    () => false
   );
 
   /**
@@ -83,25 +92,28 @@ export default function ToastProvider({ children }: ToastProviderProps) {
   /**
    * 새 토스트를 추가하고 자동 제거 타이머를 등록한다.
    */
-  const showToast = useCallback((toastInput: ToastInput) => {
-    const toastId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const resolvedDurationMs = toastInput.durationMs ?? DEFAULT_TOAST_DURATION_MS;
-    const nextToast: ToastItem = {
-      id: toastId,
-      message: toastInput.message,
-      description: toastInput.description,
-      durationMs: resolvedDurationMs,
-      variant: toastInput.variant ?? 'info',
-    };
+  const showToast = useCallback(
+    (toastInput: ToastInput) => {
+      const toastId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const resolvedDurationMs = toastInput.durationMs ?? DEFAULT_TOAST_DURATION_MS;
+      const nextToast: ToastItem = {
+        id: toastId,
+        message: toastInput.message,
+        description: toastInput.description,
+        durationMs: resolvedDurationMs,
+        variant: toastInput.variant ?? 'info',
+      };
 
-    setToasts((prevToasts) => [...prevToasts, nextToast]);
+      setToasts((prevToasts) => [...prevToasts, nextToast]);
 
-    const timeoutId = setTimeout(() => {
-      dismissToast(toastId);
-    }, resolvedDurationMs);
+      const timeoutId = setTimeout(() => {
+        dismissToast(toastId);
+      }, resolvedDurationMs);
 
-    timeoutMapRef.current.set(toastId, timeoutId);
-  }, [dismissToast]);
+      timeoutMapRef.current.set(toastId, timeoutId);
+    },
+    [dismissToast]
+  );
 
   useEffect(() => {
     return () => {
@@ -116,7 +128,7 @@ export default function ToastProvider({ children }: ToastProviderProps) {
       dismissToast,
       clearToasts,
     }),
-    [clearToasts, dismissToast, showToast],
+    [clearToasts, dismissToast, showToast]
   );
 
   const toastItems = useMemo(
@@ -126,7 +138,7 @@ export default function ToastProvider({ children }: ToastProviderProps) {
         stackOffset: index * 14,
         stackZIndex: index + 1,
       })),
-    [toasts],
+    [toasts]
   );
 
   return (
@@ -148,7 +160,9 @@ export default function ToastProvider({ children }: ToastProviderProps) {
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="text-sm font-semibold">{toast.message}</p>
-                        {toast.description ? <p className="mt-1 text-xs text-[var(--color-muted)]">{toast.description}</p> : null}
+                        {toast.description ? (
+                          <p className="mt-1 text-xs text-[var(--color-muted)]">{toast.description}</p>
+                        ) : null}
                       </div>
                       <button
                         type="button"
@@ -163,7 +177,7 @@ export default function ToastProvider({ children }: ToastProviderProps) {
                 ))}
               </div>
             </div>,
-            document.body,
+            document.body
           )
         : null}
     </ToastContext.Provider>

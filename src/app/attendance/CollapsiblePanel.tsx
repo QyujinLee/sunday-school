@@ -1,8 +1,10 @@
 'use client';
 
 import type { ReactNode } from 'react';
+
 import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+
 import { usePersistentToggle } from '@/hooks/usePersistentToggle';
 
 type CollapsiblePanelProps = {
@@ -67,4 +69,3 @@ export default function CollapsiblePanel({
     </section>
   );
 }
-

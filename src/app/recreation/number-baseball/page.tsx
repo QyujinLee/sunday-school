@@ -1,7 +1,9 @@
 ﻿'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+
 import Link from 'next/link';
+
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -57,8 +59,10 @@ export default function NumberBaseballPage() {
   const rankedTeamCount = useMemo(() => Object.keys(rankByTeamId).length, [rankByTeamId]);
   const ongoingTeamConfigs = useMemo(
     () =>
-      TEAM_CONFIGS.filter((teamConfig) => !rankByTeamId[teamConfig.id] && (teamSnapshotById[teamConfig.id]?.length ?? 0) > 0),
-    [rankByTeamId, teamSnapshotById],
+      TEAM_CONFIGS.filter(
+        (teamConfig) => !rankByTeamId[teamConfig.id] && (teamSnapshotById[teamConfig.id]?.length ?? 0) > 0
+      ),
+    [rankByTeamId, teamSnapshotById]
   );
 
   useEffect(() => {
@@ -190,7 +194,10 @@ export default function NumberBaseballPage() {
         >
           <section className="mx-auto flex h-full max-w-3xl flex-col rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-3 sm:p-5">
             <header className="mb-3 flex items-center justify-between gap-3">
-              <h2 id="number-baseball-overview-title" className="text-base font-semibold text-[var(--color-text)] sm:text-lg">
+              <h2
+                id="number-baseball-overview-title"
+                className="text-base font-semibold text-[var(--color-text)] sm:text-lg"
+              >
                 진행중인 팀 시도 내역
               </h2>
               <button
@@ -220,7 +227,9 @@ export default function NumberBaseballPage() {
                         className={`flex min-h-0 flex-col rounded-xl border p-3 ${teamModalStyle.wrapperClassName}`}
                       >
                         <h3 className="mb-2 text-sm font-semibold text-[var(--color-text)]">{teamConfig.name}</h3>
-                        <div className={`min-h-0 flex-1 overflow-y-auto rounded-lg border p-2 ${teamModalStyle.listClassName}`}>
+                        <div
+                          className={`min-h-0 flex-1 overflow-y-auto rounded-lg border p-2 ${teamModalStyle.listClassName}`}
+                        >
                           {histories.length === 0 ? (
                             <p className="text-sm text-[var(--color-muted)]">아직 시도 내역이 없습니다.</p>
                           ) : (
@@ -235,7 +244,9 @@ export default function NumberBaseballPage() {
                                     <span className="font-semibold text-[var(--color-danger)]">OUT</span>
                                   ) : (
                                     <span className="flex items-center gap-1.5">
-                                      <span className="font-semibold text-[var(--color-primary)]">{history.strike}S</span>
+                                      <span className="font-semibold text-[var(--color-primary)]">
+                                        {history.strike}S
+                                      </span>
                                       <span className="font-semibold text-[var(--color-success)]">{history.ball}B</span>
                                     </span>
                                   )}

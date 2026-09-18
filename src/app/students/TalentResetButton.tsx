@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+
 import { useRouter } from 'next/navigation';
 
 import ActionModal, { type ActionModalButton } from '@/components/common/ActionModal';
@@ -91,17 +92,12 @@ export default function TalentResetButton() {
         onClick: handleResetTalents,
       },
     ],
-    [isSubmitting],
+    [isSubmitting]
   );
 
   return (
     <>
-      <button
-        type="button"
-        onClick={handleOpenModal}
-        disabled={isSubmitting}
-        className="btn btn-danger btn-md"
-      >
+      <button type="button" onClick={handleOpenModal} disabled={isSubmitting} className="btn btn-danger btn-md">
         달란트 초기화
       </button>
 

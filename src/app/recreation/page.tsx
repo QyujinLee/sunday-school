@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+
 import Link from 'next/link';
 
 const RECREATION_TOOL_KEYS = ['number_baseball', 'timer'] as const;

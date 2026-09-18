@@ -95,7 +95,10 @@ export default function StudentDetailButton({
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 text-left">
-                <h2 id="student-detail-modal-title" className="text-left text-lg font-semibold text-[var(--color-text)]">
+                <h2
+                  id="student-detail-modal-title"
+                  className="text-left text-lg font-semibold text-[var(--color-text)]"
+                >
                   학생 상세 정보
                 </h2>
                 <p className="mt-0.5 text-left text-xs text-[var(--color-muted)]">
@@ -114,7 +117,9 @@ export default function StudentDetailButton({
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               <article className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4">
-                <h3 className="mb-3 text-center text-sm font-semibold tracking-wide text-[var(--color-muted)]">학생 기본 정보</h3>
+                <h3 className="mb-3 text-center text-sm font-semibold tracking-wide text-[var(--color-muted)]">
+                  학생 기본 정보
+                </h3>
                 <dl className="grid grid-cols-[120px_1fr] gap-x-3 gap-y-1.5 text-left text-sm">
                   <div className="contents">
                     <dt className="whitespace-nowrap text-left text-[var(--color-muted)]">이름</dt>
@@ -144,7 +149,9 @@ export default function StudentDetailButton({
               </article>
 
               <article className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-soft)] p-4">
-                <h3 className="mb-3 text-center text-sm font-semibold tracking-wide text-[var(--color-muted)]">연락 및 보호자</h3>
+                <h3 className="mb-3 text-center text-sm font-semibold tracking-wide text-[var(--color-muted)]">
+                  연락 및 보호자
+                </h3>
                 <dl className="grid grid-cols-[120px_1fr] gap-x-3 gap-y-1.5 text-left text-sm">
                   <div className="contents">
                     <dt className="whitespace-nowrap text-left text-[var(--color-muted)]">전화번호</dt>
