@@ -58,6 +58,8 @@ Next.js(App Router, v16) · TypeScript · Auth.js(next-auth v4) + Google OAuth �
 
 - Google OAuth 단일 방식. JWT 세션, 토큰 유지 기간은 `src/lib/auth.ts`의 `DEFAULT_TOKEN_MAX_AGE_SECONDS` 참고.
 - 미로그인 시 `/login`으로 리다이렉트. 승인 상태에 따라 `/pending`, `/rejected`로 분기.
+- **예외: `/guest` 이하 경로는 로그인·승인 상태와 무관하게 공개다.** 데모 데이터(`src/server/guest/demo-data.ts`)만 렌더링하며 **DB를 조회하지 않는다.** 게스트 화면에 실제 학생·교사 정보나 외부 링크(회의록·재정 관리 등)를 넣지 않는다 — 새 게스트 화면을 추가할 때 이 원칙을 먼저 확인할 것. 쓰기 버튼도 노출하지 않는다(API는 승인 세션만 통과하므로 호출해도 403이지만, 눌리는 버튼 자체를 두지 않는다).
+- 게스트 화면이 전부 완성되기 전까지 로그인 페이지에 진입점을 노출하지 않는다(현재는 URL로만 접근). 진행 상황은 `docs/FEATURE_PLAN.md` 참고.
 - 관리자 전용 페이지(`/signup-management` 등)는 `ADMIN`만 접근.
 - 인앱 브라우저(카카오톡 등 WebView)는 Google 정책상 로그인이 막힐 수 있어 외부 브라우저 유도 UI가 필요(이미 구현됨, `src/proxy.ts` 참고).
 
