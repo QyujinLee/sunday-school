@@ -180,7 +180,8 @@
 - **5-1 라우트 가드**: `src/proxy.ts`에 `/guest` 공개 경로 추가. **테스트 먼저**: `src/proxy.test.ts`에 `/guest` 허용 + 기존 경로는 여전히 차단되는 케이스 추가(권한 판정 변경 시 테스트 선행 원칙)
 - **5-2 데모 데이터**: `src/server/guest/` 아래 fixture. 날짜는 `src/utils/date.ts` 기준 **오늘(KST) 기준 상대값**으로 만들어 대시보드가 항상 최신처럼 보이게 하고, 학년은 `src/utils/grade.ts`로 계산되도록 생년월일을 구성
 - **5-3 페이지 분리**: `src/app/students/page.tsx`, `src/app/teachers/page.tsx`는 조회와 렌더가 한 파일에 있음 → 표시 컴포넌트를 분리해 실데이터/게스트 페이지가 같이 쓰도록 리팩터. 대시보드는 이미 `AttendanceDashboard.tsx`로 분리돼 있음
-- **5-4 UI**: 로그인 페이지에 "게스트로 둘러보기" 버튼, `src/components/layout/AppShell.tsx`(현재 `isSignedIn && isApproved`일 때만 메뉴 표시)에 게스트 배너·메뉴 처리, `src/lib/menu-items.ts`에 게스트용 메뉴(외부 링크 제외)
+- **5-4 UI**: `src/components/layout/AppShell.tsx`(현재 `isSignedIn && isApproved`일 때만 메뉴 표시)에 게스트 배너·메뉴 처리, `src/lib/menu-items.ts`에 게스트용 메뉴(외부 링크 제외)
+- **5-4-1 진입점(마지막에)**: 로그인 페이지의 "둘러보기" 버튼은 **게스트 화면이 전부 완성된 뒤에** 추가한다. 그전까지 `/guest`는 URL로만 접근 가능하게 두어, 미완성 화면으로 들어오는 사람이 없게 한다.
 - **5-5 문서 갱신**: `docs/PRD.md` 접근 제어, `docs/PROJECT_POLICY.md` 역할·권한, `CLAUDE.md` 인증/권한 섹션(`CLAUDE.md` 변경 관리 규칙)
 - **5-6 검증**: 필수 검증 절차 + 비로그인으로 `/guest/*` 접근, 기존 경로 차단 유지, 게스트 페이지 HTML에 실데이터 문자열이 없는지 확인
 
