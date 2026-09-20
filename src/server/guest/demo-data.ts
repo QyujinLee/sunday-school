@@ -1,4 +1,7 @@
+import type { StudentInput } from '@/app/students/StudentsView';
+import type { TeacherRow } from '@/app/teachers/TeachersView';
 import { formatDateToKoreanYmd } from '@/utils/date';
+import { getSchoolYearInKst } from '@/utils/grade';
 
 /**
  * 게스트 모드에서 보여줄 데모 데이터.
@@ -62,4 +65,141 @@ export function getGuestDashboardData() {
       weeklySchedules: ['분기 생일잔치', '신입 교사 환영'],
     },
   };
+}
+
+/**
+ * 원하는 학년으로 계산되는 생년월일을 만든다.
+ * grade.ts의 계산식(학사연도 - 출생연도 - 6)을 그대로 따르므로 해가 바뀌어도 학년이 어긋나지 않는다.
+ * gradeNumber 7 이상은 졸업생, 0 이하는 유아부가 된다.
+ */
+function getBirthDateForGrade(gradeNumber: number, monthDay: string): Date {
+  const birthYear = getSchoolYearInKst() - 6 - gradeNumber;
+
+  return new Date(`${birthYear}-${monthDay}T00:00:00+09:00`);
+}
+
+/**
+ * 게스트 학생 관리 화면에 넘길 데모 학생 목록을 만든다.
+ */
+export function getGuestStudents(): StudentInput[] {
+  return [
+    {
+      id: 'demo-student-1',
+      name: '김하늘',
+      gender: 'FEMALE',
+      birthDate: getBirthDateForGrade(6, '04-12'),
+      address: '서울시 광진구 중곡동',
+      phone: '010-1234-5678',
+      currentTalent: 42,
+      guardianContact: { name: '김성실', relationship: 'FATHER', phone: '010-1234-1111' },
+    },
+    {
+      id: 'demo-student-2',
+      name: '이서준',
+      gender: 'MALE',
+      birthDate: getBirthDateForGrade(4, '07-03'),
+      address: '서울시 광진구 능동',
+      phone: null,
+      currentTalent: 35,
+      guardianContact: { name: '이온유', relationship: 'MOTHER', phone: '010-2345-2222' },
+    },
+    {
+      id: 'demo-student-3',
+      name: '박지우',
+      gender: 'FEMALE',
+      birthDate: getBirthDateForGrade(4, '11-21'),
+      address: '서울시 광진구 자양동',
+      phone: null,
+      currentTalent: 28,
+      guardianContact: { name: '박기쁨', relationship: 'MOTHER', phone: '010-3456-3333' },
+    },
+    {
+      id: 'demo-student-4',
+      name: '최윤아',
+      gender: 'FEMALE',
+      birthDate: getBirthDateForGrade(2, '02-08'),
+      address: '서울시 광진구 구의동',
+      phone: null,
+      currentTalent: 19,
+      guardianContact: { name: '최평안', relationship: 'GRANDMOTHER', phone: '010-4567-4444' },
+    },
+    {
+      id: 'demo-student-5',
+      name: '정도현',
+      gender: 'MALE',
+      birthDate: getBirthDateForGrade(1, '09-30'),
+      address: '서울시 광진구 화양동',
+      phone: null,
+      currentTalent: 24,
+      guardianContact: { name: '정사랑', relationship: 'FATHER', phone: '010-5678-5555' },
+    },
+    {
+      id: 'demo-student-6',
+      name: '한소민',
+      gender: 'FEMALE',
+      birthDate: getBirthDateForGrade(0, '05-17'),
+      address: '서울시 광진구 군자동',
+      phone: null,
+      currentTalent: 12,
+      guardianContact: { name: '한소망', relationship: 'MOTHER', phone: '010-6789-6666' },
+    },
+    {
+      id: 'demo-student-7',
+      name: '오지환',
+      gender: 'MALE',
+      birthDate: getBirthDateForGrade(7, '01-25'),
+      address: '서울시 광진구 중곡동',
+      phone: null,
+      currentTalent: 58,
+      guardianContact: { name: '오진실', relationship: 'FATHER', phone: '010-7890-7777' },
+    },
+  ];
+}
+
+/**
+ * 게스트 교사 정보 화면에 넘길 데모 교사 목록을 만든다.
+ */
+export function getGuestTeachers(): TeacherRow[] {
+  return [
+    {
+      id: 'demo-teacher-1',
+      email: 'demo.admin@example.com',
+      name: '김선교',
+      phone: '010-1111-2222',
+      birthDate: new Date('1988-03-14T00:00:00+09:00'),
+      grade: '6학년',
+      role: 'ADMIN',
+      isActive: true,
+    },
+    {
+      id: 'demo-teacher-2',
+      email: 'demo.teacher1@example.com',
+      name: '이믿음',
+      phone: '010-2222-3333',
+      birthDate: new Date('1993-08-02T00:00:00+09:00'),
+      grade: '4학년',
+      role: 'TEACHER',
+      isActive: true,
+    },
+    {
+      id: 'demo-teacher-3',
+      email: 'demo.teacher2@example.com',
+      name: '박소망',
+      phone: '010-3333-4444',
+      birthDate: new Date('1996-11-27T00:00:00+09:00'),
+      grade: '유아부',
+      role: 'TEACHER',
+      isActive: true,
+    },
+    {
+      id: 'demo-teacher-4',
+      email: 'demo.teacher3@example.com',
+      name: '정은혜',
+      phone: null,
+      birthDate: null,
+      grade: '2학년',
+      role: 'TEACHER',
+      isActive: false,
+    },
+  ];
 }

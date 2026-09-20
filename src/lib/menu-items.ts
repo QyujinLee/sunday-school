@@ -48,7 +48,11 @@ const COMMON_MENU_ITEMS: MenuItem[] = [
  * 게스트 모드에서 보여줄 메뉴.
  * 개인정보가 없는 데모 화면만 포함하고 외부 링크(회의록·재정 관리 등)는 제외한다.
  */
-export const GUEST_MENU_ITEMS: MenuItem[] = [{ label: '대시보드', icon: faChartLine, url: '/guest/dashboard' }];
+export const GUEST_MENU_ITEMS: MenuItem[] = [
+  { label: '대시보드', icon: faChartLine, url: '/guest/dashboard' },
+  { label: '학생 관리', icon: faUserGraduate, url: '/guest/students' },
+  { label: '교사 정보', icon: faAddressBook, url: '/guest/teachers' },
+];
 
 const ADMIN_ONLY_MENU_ITEM: MenuItem = {
   label: '가입 관리',
