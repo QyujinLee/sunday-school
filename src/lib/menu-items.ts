@@ -50,6 +50,7 @@ const COMMON_MENU_ITEMS: MenuItem[] = [
  */
 export const GUEST_MENU_ITEMS: MenuItem[] = [
   { label: '대시보드', icon: faChartLine, url: '/guest/dashboard' },
+  { label: '출석 관리', icon: faCalendarCheck, url: '/guest/attendance' },
   { label: '학생 관리', icon: faUserGraduate, url: '/guest/students' },
   { label: '교사 정보', icon: faAddressBook, url: '/guest/teachers' },
 ];

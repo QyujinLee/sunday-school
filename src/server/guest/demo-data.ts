@@ -1,7 +1,10 @@
+import { AttendanceStatus } from '@prisma/client';
+
 import type { StudentInput } from '@/app/students/StudentsView';
 import type { TeacherRow } from '@/app/teachers/TeachersView';
+import type { AttendanceTabKey } from '@/server/attendance/service';
 import { formatDateToKoreanYmd } from '@/utils/date';
-import { getSchoolYearInKst } from '@/utils/grade';
+import { getGradeLabelByBirthDateInKst, getSchoolYearInKst } from '@/utils/grade';
 
 /**
  * 게스트 모드에서 보여줄 데모 데이터.
@@ -202,4 +205,67 @@ export function getGuestTeachers(): TeacherRow[] {
       isActive: false,
     },
   ];
+}
+
+const GRADE_LABEL_BY_ATTENDANCE_TAB: Partial<Record<AttendanceTabKey, string>> = {
+  grade_6: '6학년',
+  grade_5: '5학년',
+  grade_4: '4학년',
+  grade_3: '3학년',
+  grade_2: '2학년',
+  grade_1: '1학년',
+  kindergarten: '유아부',
+};
+
+const DEMO_WEEKLY_EXTRA_TALENTS = [3, 0, 1, 0, 2, 1, 0];
+
+/**
+ * 게스트 출석 관리 화면에 넘길 데모 출석 데이터를 만든다.
+ * 학년 탭에 맞춰 목록을 걸러내는 것까지 실제 화면과 같게 동작시킨다.
+ */
+export function getGuestAttendanceData(selectedTab: AttendanceTabKey) {
+  const studentRows = getGuestStudents().map((student, index) => ({
+    id: student.id,
+    name: student.name,
+    gender: student.gender,
+    birthDate: student.birthDate.toISOString(),
+    currentTalent: student.currentTalent,
+    weeklyExtraTalent: DEMO_WEEKLY_EXTRA_TALENTS[index] ?? 0,
+    gradeLabel: getGradeLabelByBirthDateInKst(student.birthDate) as string,
+    attendanceStatus: index % 3 === 2 ? AttendanceStatus.ABSENT : AttendanceStatus.PRESENT,
+  }));
+
+  const targetGradeLabel = GRADE_LABEL_BY_ATTENDANCE_TAB[selectedTab];
+  const studentsForTable = targetGradeLabel
+    ? studentRows.filter((student) => student.gradeLabel === targetGradeLabel)
+    : studentRows;
+
+  const nowTimestamp = Date.now();
+
+  return {
+    studentsForTable,
+    talentLogs: [
+      {
+        id: 'demo-talent-log-1',
+        amount: 3,
+        transactedAt: new Date(nowTimestamp - 40 * 60 * 1000).toISOString(),
+        student: { name: '김하늘' },
+        teacher: { name: '이믿음', email: 'demo.teacher1@example.com' },
+      },
+      {
+        id: 'demo-talent-log-2',
+        amount: 2,
+        transactedAt: new Date(nowTimestamp - 3 * 60 * 60 * 1000).toISOString(),
+        student: { name: '정도현' },
+        teacher: { name: '김선교', email: 'demo.admin@example.com' },
+      },
+      {
+        id: 'demo-talent-log-3',
+        amount: -1,
+        transactedAt: new Date(nowTimestamp - 26 * 60 * 60 * 1000).toISOString(),
+        student: { name: '박지우' },
+        teacher: { name: '박소망', email: 'demo.teacher2@example.com' },
+      },
+    ],
+  };
 }

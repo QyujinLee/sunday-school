@@ -53,6 +53,10 @@ type AttendanceInteractiveSectionProps = {
   attendanceDateText: string;
   nextSundayDateText: string;
   initialData: InteractiveAttendancePayload;
+  /** 출석 토글·달란트 조정 버튼 노출 여부. 게스트 화면에서는 false. */
+  canManage?: boolean;
+  /** 탭 링크의 기준 경로. 실데이터 화면은 /attendance, 게스트 화면은 /guest/attendance. */
+  basePath?: string;
 };
 
 type ToggleAttendanceInput = {
@@ -197,6 +201,8 @@ export default function AttendanceInteractiveSection({
   attendanceDateText,
   nextSundayDateText,
   initialData,
+  canManage = true,
+  basePath = '/attendance',
 }: AttendanceInteractiveSectionProps) {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
@@ -208,6 +214,8 @@ export default function AttendanceInteractiveSection({
     initialData,
     staleTime: 30_000,
     refetchOnWindowFocus: false,
+    // 게스트 화면은 조회 API도 승인 세션이 필요하므로 재조회하지 않고 전달받은 데모 데이터만 쓴다.
+    enabled: canManage,
   });
 
   const toggleAttendanceMutation = useMutation({
@@ -401,7 +409,7 @@ export default function AttendanceInteractiveSection({
             return (
               <Link
                 key={tab.key}
-                href={`/attendance?attendance_tab=${tab.key}`}
+                href={`${basePath}?attendance_tab=${tab.key}`}
                 prefetch={false}
                 className={`inline-flex items-center justify-center rounded-full border px-3 py-1.5 text-sm font-medium transition ${
                   isSelected
@@ -441,37 +449,39 @@ export default function AttendanceInteractiveSection({
                         {student.weeklyExtraTalent > 0 ? `+${student.weeklyExtraTalent}` : student.weeklyExtraTalent}
                       </span>
                     </p>
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {[3, 2, 1].map((amount) => (
+                    {canManage ? (
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {[3, 2, 1].map((amount) => (
+                          <button
+                            key={`${student.id}-${amount}`}
+                            type="button"
+                            onClick={() => handleAdjustTalent(student.id, amount)}
+                            className={getButtonClassName({
+                              variant: 'secondary',
+                              tone: 'success',
+                              size: 'sm',
+                              round: 'pill',
+                              className: 'min-w-[42px]',
+                            })}
+                          >
+                            +{amount}
+                          </button>
+                        ))}
                         <button
-                          key={`${student.id}-${amount}`}
                           type="button"
-                          onClick={() => handleAdjustTalent(student.id, amount)}
+                          onClick={() => handleAdjustTalent(student.id, -1)}
                           className={getButtonClassName({
                             variant: 'secondary',
-                            tone: 'success',
+                            tone: 'danger',
                             size: 'sm',
                             round: 'pill',
                             className: 'min-w-[42px]',
                           })}
                         >
-                          +{amount}
+                          -1
                         </button>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={() => handleAdjustTalent(student.id, -1)}
-                        className={getButtonClassName({
-                          variant: 'secondary',
-                          tone: 'danger',
-                          size: 'sm',
-                          round: 'pill',
-                          className: 'min-w-[42px]',
-                        })}
-                      >
-                        -1
-                      </button>
-                    </div>
+                      </div>
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -505,21 +515,27 @@ export default function AttendanceInteractiveSection({
                         {formatDateToKoreanYmd(new Date(student.birthDate))}
                       </dd>
                     </dl>
-                    <div className="mt-3 flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => handleToggleAttendance(student.id, student.attendanceStatus, nextStatus)}
-                        className={getButtonClassName({
-                          variant: 'primary',
-                          tone: isPresent ? 'danger' : 'success',
-                          size: 'sm',
-                          round: 'pill',
-                          className: 'min-w-[68px]',
-                        })}
-                      >
-                        {isPresent ? '출석 취소' : '출석'}
-                      </button>
-                    </div>
+                    {canManage ? (
+                      <div className="mt-3 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleAttendance(student.id, student.attendanceStatus, nextStatus)}
+                          className={getButtonClassName({
+                            variant: 'primary',
+                            tone: isPresent ? 'danger' : 'success',
+                            size: 'sm',
+                            round: 'pill',
+                            className: 'min-w-[68px]',
+                          })}
+                        >
+                          {isPresent ? '출석 취소' : '출석'}
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="mt-3 text-right text-sm font-medium text-[var(--color-muted)]">
+                        {isPresent ? '출석' : '미출석'}
+                      </p>
+                    )}
                   </li>
                 );
               })}
@@ -556,37 +572,41 @@ export default function AttendanceInteractiveSection({
                         {student.weeklyExtraTalent > 0 ? `+${student.weeklyExtraTalent}` : student.weeklyExtraTalent}
                       </td>
                       <td className="px-2 py-2">
-                        <div className="flex justify-center gap-1.5">
-                          {[3, 2, 1].map((amount) => (
+                        {canManage ? (
+                          <div className="flex justify-center gap-1.5">
+                            {[3, 2, 1].map((amount) => (
+                              <button
+                                key={`${student.id}-${amount}`}
+                                type="button"
+                                onClick={() => handleAdjustTalent(student.id, amount)}
+                                className={getButtonClassName({
+                                  variant: 'secondary',
+                                  tone: 'success',
+                                  size: 'sm',
+                                  round: 'pill',
+                                  className: 'min-w-[42px]',
+                                })}
+                              >
+                                +{amount}
+                              </button>
+                            ))}
                             <button
-                              key={`${student.id}-${amount}`}
                               type="button"
-                              onClick={() => handleAdjustTalent(student.id, amount)}
+                              onClick={() => handleAdjustTalent(student.id, -1)}
                               className={getButtonClassName({
                                 variant: 'secondary',
-                                tone: 'success',
+                                tone: 'danger',
                                 size: 'sm',
                                 round: 'pill',
                                 className: 'min-w-[42px]',
                               })}
                             >
-                              +{amount}
+                              -1
                             </button>
-                          ))}
-                          <button
-                            type="button"
-                            onClick={() => handleAdjustTalent(student.id, -1)}
-                            className={getButtonClassName({
-                              variant: 'secondary',
-                              tone: 'danger',
-                              size: 'sm',
-                              round: 'pill',
-                              className: 'min-w-[42px]',
-                            })}
-                          >
-                            -1
-                          </button>
-                        </div>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-[var(--color-muted)]">-</span>
+                        )}
                       </td>
                     </tr>
                   ))
@@ -629,19 +649,25 @@ export default function AttendanceInteractiveSection({
                           {formatDateToKoreanYmd(new Date(student.birthDate))}
                         </td>
                         <td className="px-2 py-2">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleAttendance(student.id, student.attendanceStatus, nextStatus)}
-                            className={getButtonClassName({
-                              variant: 'primary',
-                              tone: isPresent ? 'danger' : 'success',
-                              size: 'sm',
-                              round: 'pill',
-                              className: 'min-w-[68px]',
-                            })}
-                          >
-                            {isPresent ? '출석 취소' : '출석'}
-                          </button>
+                          {canManage ? (
+                            <button
+                              type="button"
+                              onClick={() => handleToggleAttendance(student.id, student.attendanceStatus, nextStatus)}
+                              className={getButtonClassName({
+                                variant: 'primary',
+                                tone: isPresent ? 'danger' : 'success',
+                                size: 'sm',
+                                round: 'pill',
+                                className: 'min-w-[68px]',
+                              })}
+                            >
+                              {isPresent ? '출석 취소' : '출석'}
+                            </button>
+                          ) : (
+                            <span className="text-sm font-medium text-[var(--color-muted)]">
+                              {isPresent ? '출석' : '미출석'}
+                            </span>
+                          )}
                         </td>
                       </tr>
                     );

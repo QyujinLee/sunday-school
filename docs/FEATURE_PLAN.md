@@ -179,7 +179,7 @@
 - **5-0 결정**: 데이터 방식(A/B), 공개 화면 범위
 - **5-1 라우트 가드**: `src/proxy.ts`에 `/guest` 공개 경로 추가. **테스트 먼저**: `src/proxy.test.ts`에 `/guest` 허용 + 기존 경로는 여전히 차단되는 케이스 추가(권한 판정 변경 시 테스트 선행 원칙)
 - **5-2 데모 데이터**: `src/server/guest/` 아래 fixture. 날짜는 `src/utils/date.ts` 기준 **오늘(KST) 기준 상대값**으로 만들어 대시보드가 항상 최신처럼 보이게 하고, 학년은 `src/utils/grade.ts`로 계산되도록 생년월일을 구성
-- **5-3 페이지 분리** ✅ 학생·교사 완료: `StudentsView.tsx`, `TeachersView.tsx`로 표시 컴포넌트를 분리해 실데이터/게스트 페이지가 함께 사용한다. 쓰기 진입점은 `canManage`(학생) / `canManageAll`·`currentTeacherId`(교사)로 가린다. 대시보드는 `AttendanceDashboard.tsx`에 `canRefreshCalendar` 추가. **남은 것: 출석 관리 화면**(쓰기 동작이 많아 읽기 전용 처리 필요)
+- **5-3 페이지 분리** ✅ 학생·교사 완료: `StudentsView.tsx`, `TeachersView.tsx`로 표시 컴포넌트를 분리해 실데이터/게스트 페이지가 함께 사용한다. 쓰기 진입점은 `canManage`(학생) / `canManageAll`·`currentTeacherId`(교사)로 가린다. 대시보드는 `AttendanceDashboard.tsx`에 `canRefreshCalendar` 추가. 출석 화면은 `AttendanceInteractiveSection.tsx`에 `canManage`·`basePath` 추가 — 버튼을 가릴 뿐 아니라 **React Query 재조회까지 끈다**(조회 API도 승인 세션이 필요하므로 켜두면 403)
 - **5-4 UI**: `src/components/layout/AppShell.tsx`(현재 `isSignedIn && isApproved`일 때만 메뉴 표시)에 게스트 배너·메뉴 처리, `src/lib/menu-items.ts`에 게스트용 메뉴(외부 링크 제외)
 - **5-4-1 진입점(마지막에)**: 로그인 페이지의 "둘러보기" 버튼은 **게스트 화면이 전부 완성된 뒤에** 추가한다. 그전까지 `/guest`는 URL로만 접근 가능하게 두어, 미완성 화면으로 들어오는 사람이 없게 한다.
 - **5-5 문서 갱신**: `docs/PRD.md` 접근 제어, `docs/PROJECT_POLICY.md` 역할·권한, `CLAUDE.md` 인증/권한 섹션(`CLAUDE.md` 변경 관리 규칙)
