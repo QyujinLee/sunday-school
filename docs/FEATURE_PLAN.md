@@ -181,7 +181,7 @@
 - **5-2 데모 데이터**: `src/server/guest/` 아래 fixture. 날짜는 `src/utils/date.ts` 기준 **오늘(KST) 기준 상대값**으로 만들어 대시보드가 항상 최신처럼 보이게 하고, 학년은 `src/utils/grade.ts`로 계산되도록 생년월일을 구성
 - **5-3 페이지 분리** ✅ 학생·교사 완료: `StudentsView.tsx`, `TeachersView.tsx`로 표시 컴포넌트를 분리해 실데이터/게스트 페이지가 함께 사용한다. 쓰기 진입점은 `canManage`(학생) / `canManageAll`·`currentTeacherId`(교사)로 가린다. 대시보드는 `AttendanceDashboard.tsx`에 `canRefreshCalendar` 추가. 출석 화면은 `AttendanceInteractiveSection.tsx`에 `canManage`·`basePath` 추가 — 버튼을 가릴 뿐 아니라 **React Query 재조회까지 끈다**(조회 API도 승인 세션이 필요하므로 켜두면 403)
 - **5-4 UI**: `src/components/layout/AppShell.tsx`(현재 `isSignedIn && isApproved`일 때만 메뉴 표시)에 게스트 배너·메뉴 처리, `src/lib/menu-items.ts`에 게스트용 메뉴(외부 링크 제외)
-- **5-4-1 진입점(마지막에)**: 로그인 페이지의 "둘러보기" 버튼은 **게스트 화면이 전부 완성된 뒤에** 추가한다. 그전까지 `/guest`는 URL로만 접근 가능하게 두어, 미완성 화면으로 들어오는 사람이 없게 한다.
+- **5-4-1 진입점(마지막에)** ✅ 완료: 게스트 화면 4개(대시보드·출석·학생·교사)가 모두 끝난 뒤 로그인 페이지에 "로그인 없이 둘러보기" 버튼을 추가했다. 게스트 배너에도 "둘러보기 홈" 링크를 넣어, 상단 로고로 실데이터 홈에 갔다가 로그인으로 튕기는 막다른 길을 막았다.
 - **5-5 문서 갱신**: `docs/PRD.md` 접근 제어, `docs/PROJECT_POLICY.md` 역할·권한, `CLAUDE.md` 인증/권한 섹션(`CLAUDE.md` 변경 관리 규칙)
 - **5-6 검증**: 필수 검증 절차 + 비로그인으로 `/guest/*` 접근, 기존 경로 차단 유지, 게스트 페이지 HTML에 실데이터 문자열이 없는지 확인
 

@@ -1,6 +1,9 @@
 ﻿import type { Metadata } from 'next';
 
+import Link from 'next/link';
+
 import GoogleSignInButton from '@/components/common/GoogleSignInButton';
+import { getButtonClassName } from '@/lib/button';
 
 export const metadata: Metadata = {
   title: '로그인',
@@ -45,6 +48,16 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
         <div className="mt-8">
           <GoogleSignInButton callbackUrl={callbackUrl} />
+        </div>
+
+        <div className="mt-3">
+          <Link
+            href="/guest"
+            prefetch={false}
+            className={getButtonClassName({ variant: 'secondary', fullWidth: true })}
+          >
+            로그인 없이 둘러보기
+          </Link>
         </div>
 
         <p className="mt-4 text-center text-xs text-[var(--color-muted)]">

@@ -10,6 +10,10 @@ export default function GuestLayout({ children }: { children: ReactNode }) {
     <>
       <div className="border-b border-[var(--color-border)] bg-[var(--color-primary-soft)] px-4 py-2 text-center text-xs text-[var(--color-primary)] sm:px-6 sm:text-sm">
         <span className="font-semibold">게스트 모드</span> · 예시 데이터이며 실제 학생·교사 정보가 아닙니다.{' '}
+        <Link href="/guest" prefetch={false} className="underline underline-offset-2">
+          둘러보기 홈
+        </Link>{' '}
+        ·{' '}
         <Link href="/login" prefetch={false} className="underline underline-offset-2">
           로그인하기
         </Link>
