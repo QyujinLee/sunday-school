@@ -206,7 +206,13 @@ export default function AttendanceInteractiveSection({
 }: AttendanceInteractiveSectionProps) {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const queryKey = useMemo(() => ['attendance', 'interactive', selectedTab] as const, [selectedTab]);
+  // basePath를 키에 포함해 게스트(데모)와 실데이터 캐시를 분리한다.
+  // React Query는 같은 키의 쿼리가 이미 있으면 initialData를 무시하고 기존 캐시를 재사용하므로,
+  // 키가 같으면 게스트 화면을 본 뒤 실제 출석 화면에 데모 데이터가 뜨거나 그 반대가 된다.
+  const queryKey = useMemo(
+    () => ['attendance', 'interactive', basePath, selectedTab] as const,
+    [basePath, selectedTab]
+  );
 
   const { data } = useQuery({
     queryKey,

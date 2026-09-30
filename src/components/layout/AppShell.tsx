@@ -94,6 +94,9 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
   const isAdmin = role === 'ADMIN';
   const isApproved = approvalStatus === 'APPROVED';
   const isHomePage = pathname === '/';
+  // 게스트 화면에서는 로고가 둘러보기 홈으로 가야 한다. 홈(/)은 비로그인에게 공개되지 않아 로그인 화면으로 튕긴다.
+  const isGuestPath = pathname === '/guest' || pathname.startsWith('/guest/');
+  const logoHref = isGuestPath ? '/guest' : '/';
   const shouldShowMenu = isSignedIn && isApproved && !isHomePage;
   const menuItems = useMemo(() => getMenuItemsByRole(role), [role]);
   const headerDisplayName = userDisplayName
@@ -139,7 +142,7 @@ export default function AppShell({ children, role, approvalStatus, userDisplayNa
   return (
     <>
       <header className="sticky top-0 z-50 flex h-[var(--header-height-mobile)] items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 sm:h-[var(--header-height-desktop)] sm:px-6">
-        <Link href="/" prefetch={false} className="flex items-center gap-2 sm:gap-2.5">
+        <Link href={logoHref} prefetch={false} className="flex items-center gap-2 sm:gap-2.5">
           <Image
             src="/img/img_main_logo.png"
             alt="서광주일학교 로고"

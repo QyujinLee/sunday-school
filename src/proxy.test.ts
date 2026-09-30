@@ -55,9 +55,12 @@ describe('proxy - 미로그인', () => {
     expect(redirectTarget(response)).toBe('/login?callback_url=%2Fattendance%3Fattendance_tab%3Dthis_week');
   });
 
-  it('공개 경로(/, /login)는 통과시킨다', async () => {
-    expect(redirectTarget(await proxy(request('/')))).toBeNull();
+  it('로그인 페이지는 통과시킨다', async () => {
     expect(redirectTarget(await proxy(request('/login')))).toBeNull();
+  });
+
+  it('홈(/)도 로그인으로 보낸다 - 비로그인에게 메뉴의 외부 링크(재정 관리 등)가 노출되지 않도록', async () => {
+    expect(redirectTarget(await proxy(request('/')))).toBe('/login?callback_url=%2F');
   });
 
   it('인증 API 경로는 검사하지 않는다', async () => {
@@ -145,6 +148,12 @@ describe('proxy - 관리자 전용 경로', () => {
     getTokenMock.mockResolvedValue({ approvalStatus: 'APPROVED', role: 'ADMIN' });
 
     expect(redirectTarget(await proxy(request('/signup-management')))).toBeNull();
+  });
+
+  it('승인된 교사는 홈(/)에 그대로 들어갈 수 있다', async () => {
+    getTokenMock.mockResolvedValue({ approvalStatus: 'APPROVED', role: 'TEACHER' });
+
+    expect(redirectTarget(await proxy(request('/')))).toBeNull();
   });
 
   it('승인된 일반 교사는 일반 경로를 통과한다', async () => {

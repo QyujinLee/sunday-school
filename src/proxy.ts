@@ -3,7 +3,8 @@ import { NextResponse } from 'next/server';
 
 import { getToken } from 'next-auth/jwt';
 
-const PUBLIC_PATHS = ['/', '/login'];
+// 홈(/)은 공개하지 않는다. 홈 메뉴에 재정 관리 시트·노션 같은 외부 링크가 있어 비로그인에게 노출되면 안 된다.
+const PUBLIC_PATHS = ['/login'];
 const GUEST_PATH_PREFIX = '/guest';
 const PENDING_PATH = '/pending';
 const REJECTED_PATH = '/rejected';
