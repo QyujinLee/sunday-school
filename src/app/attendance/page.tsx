@@ -5,7 +5,6 @@ import { getAttendanceInteractiveData } from '@/server/attendance/service';
 import { formatDateToKoreanYmd } from '@/utils/date';
 
 import AttendanceInteractiveSection from './AttendanceInteractiveSection';
-import AttendanceResultToast from './AttendanceResultToast';
 
 export const metadata: Metadata = {
   title: '출석 관리',
@@ -28,8 +27,6 @@ export default async function AttendancePage({ searchParams }: AttendancePagePro
 
   return (
     <main className="min-h-screen overflow-x-hidden px-4 py-8 sm:px-6">
-      <AttendanceResultToast />
-
       <AttendanceInteractiveSection
         selectedTab={selectedTab}
         attendanceDateText={formatDateToKoreanYmd(attendanceDate)}

@@ -13,10 +13,12 @@ type CollapsiblePanelProps = {
   children: ReactNode;
   className?: string;
   storageKey: string;
+  /** PC에서의 기본 펼침 여부. 모바일은 항상 접힌 상태로 시작한다. */
+  defaultDesktopExpanded?: boolean;
 };
 
 /**
- * 플랫폼과 관계없이 기본 접힘 상태를 갖는 토글 패널을 렌더링한다.
+ * 펼침 상태를 기억하는 접기/펼치기 패널을 렌더링한다.
  */
 export default function CollapsiblePanel({
   title,
@@ -24,11 +26,12 @@ export default function CollapsiblePanel({
   children,
   className,
   storageKey,
+  defaultDesktopExpanded = false,
 }: CollapsiblePanelProps) {
   const { isExpanded, toggle } = usePersistentToggle({
     storageKey,
     eventName: `${storageKey}-change`,
-    defaultDesktopExpanded: false,
+    defaultDesktopExpanded,
   });
 
   /**

@@ -25,8 +25,7 @@
 - Database: Neon Postgres
 - ORM: Prisma
 - Server State: TanStack Query (React Query)
-- Client State: Zustand
-- Styling: Tailwind CSS, SCSS
+- Styling: Tailwind CSS
 - Validation: Zod
 
 ## 데이터 모델 (초안)

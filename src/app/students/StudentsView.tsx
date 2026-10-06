@@ -2,12 +2,12 @@ import type { ReactNode } from 'react';
 
 import Link from 'next/link';
 
+import CollapsiblePanel from '@/components/common/CollapsiblePanel';
 import { getGenderLabel, getGradeDisplayLabel } from '@/lib/attendance';
 import { sortStudentsByGradeDescThenName } from '@/lib/student-sort';
 import { formatDateToKoreanYmd } from '@/utils/date';
 import { type StudentGradeLabel, getGradeLabelByBirthDateInKst, isGraduateByBirthDateInKst } from '@/utils/grade';
 
-import CollapsiblePanel from './CollapsiblePanel';
 import StudentAttendanceLedgerButton from './StudentAttendanceLedgerButton';
 import StudentDetailButton from './StudentDetailButton';
 

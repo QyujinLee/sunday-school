@@ -7,12 +7,11 @@ import Link from 'next/link';
 import { AttendanceStatus, Gender } from '@prisma/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import CollapsiblePanel from '@/components/common/CollapsiblePanel';
 import { useToast } from '@/components/common/ToastProvider';
 import { ATTENDANCE_TABS, type AttendanceTabKey, getGenderLabel, getGradeDisplayLabel } from '@/lib/attendance';
 import { getButtonClassName } from '@/lib/button';
 import { formatDateToKoreanYmd } from '@/utils/date';
-
-import CollapsiblePanel from './CollapsiblePanel';
 
 type SerializableStudentRow = {
   id: string;
@@ -666,6 +665,7 @@ export default function AttendanceInteractiveSection({
       </section>
 
       <CollapsiblePanel
+        defaultDesktopExpanded
         title="달란트 변동 기록"
         description="출석을 제외한 금주 추가 달란트 조정 내역을 최신순으로 기록합니다."
         storageKey="attendance_talent_log_collapsible"
