@@ -79,6 +79,10 @@ export const authOptions: NextAuthOptions = {
       });
 
       if (!teacher) {
+        // 삭제된 교사는 이전 승인 스냅샷을 비워 세션 가드가 차단하도록 한다.
+        delete token.teacherId;
+        delete token.role;
+        delete token.approvalStatus;
         return token;
       }
 
