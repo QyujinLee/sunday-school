@@ -1,22 +1,11 @@
 import { NextResponse } from 'next/server';
 
 import { AttendanceStatus } from '@prisma/client';
-import { getServerSession } from 'next-auth';
 
-import { authOptions } from '@/lib/auth';
+import { requireApprovedTeacher } from '@/lib/api-session';
 import { prisma } from '@/lib/prisma';
-import { TEACHER_APPROVAL_STATUS } from '@/types/teacher';
-import { formatDateToKoreanYmd } from '@/utils/date';
-
-const KOREAN_WEEKDAY_INDEX_BY_SHORT_NAME: Record<string, number> = {
-  Sun: 0,
-  Mon: 1,
-  Tue: 2,
-  Wed: 3,
-  Thu: 4,
-  Fri: 5,
-  Sat: 6,
-};
+import { addWeeks, formatDateToKoreanYmd, getFirstSundayOfMonthKst, getLastSundayOfMonthKst } from '@/utils/date';
+import { getSchoolYearInKst } from '@/utils/grade';
 
 type RouteContext = {
   params: Promise<{
@@ -25,54 +14,15 @@ type RouteContext = {
 };
 
 /**
- * 한국 시간 기준 요일 인덱스(일=0)를 반환한다.
- */
-function getKoreanWeekdayIndex(date: Date): number {
-  const shortWeekdayName = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Asia/Seoul',
-    weekday: 'short',
-  }).format(date);
-
-  return KOREAN_WEEKDAY_INDEX_BY_SHORT_NAME[shortWeekdayName] ?? 0;
-}
-
-/**
- * 특정 연/월의 첫 번째 일요일(00:00, KST 기준)을 반환한다.
- */
-function getFirstSundayOfMonthKst(year: number, month: number): Date {
-  const firstDay = new Date(`${year}-${String(month).padStart(2, '0')}-01T00:00:00+09:00`);
-  const firstDayWeekIndex = getKoreanWeekdayIndex(firstDay);
-
-  if (firstDayWeekIndex === 0) {
-    return firstDay;
-  }
-
-  const firstSunday = new Date(firstDay);
-  firstSunday.setUTCDate(firstSunday.getUTCDate() + (7 - firstDayWeekIndex));
-  return firstSunday;
-}
-
-/**
- * 특정 연/월의 마지막 일요일(00:00, KST 기준)을 반환한다.
- */
-function getLastSundayOfMonthKst(year: number, month: number): Date {
-  const lastDayOfMonth = new Date(Date.UTC(year, month, 0));
-  const weekdayIndex = getKoreanWeekdayIndex(lastDayOfMonth);
-  const lastSunday = new Date(lastDayOfMonth);
-  lastSunday.setUTCDate(lastSunday.getUTCDate() - weekdayIndex);
-  return lastSunday;
-}
-
-/**
  * 시작/종료 일요일 사이의 주차 목록(양 끝 포함)을 반환한다.
  */
 function getSundaySeriesBetween(startSunday: Date, endSunday: Date): Date[] {
   const result: Date[] = [];
-  const cursor = new Date(startSunday);
+  let cursor = startSunday;
 
   while (cursor <= endSunday) {
-    result.push(new Date(cursor));
-    cursor.setUTCDate(cursor.getUTCDate() + 7);
+    result.push(cursor);
+    cursor = addWeeks(cursor, 1);
   }
 
   return result;
@@ -82,10 +32,10 @@ function getSundaySeriesBetween(startSunday: Date, endSunday: Date): Date[] {
  * 학생별 학사연도 출석부 데이터를 반환한다.
  */
 export async function GET(_request: Request, context: RouteContext) {
-  const session = await getServerSession(authOptions);
+  const guardResult = await requireApprovedTeacher();
 
-  if (!session?.user?.id || session.user.approvalStatus !== TEACHER_APPROVAL_STATUS.APPROVED) {
-    return NextResponse.json({ message: 'forbidden' }, { status: 403 });
+  if (!guardResult.ok) {
+    return guardResult.response;
   }
 
   const { student_id: studentId } = await context.params;
@@ -106,10 +56,7 @@ export async function GET(_request: Request, context: RouteContext) {
     return NextResponse.json({ message: 'not_found' }, { status: 404 });
   }
 
-  const todayYmd = formatDateToKoreanYmd(new Date());
-  const currentYear = Number(todayYmd.slice(0, 4));
-  const currentMonth = Number(todayYmd.slice(5, 7));
-  const schoolYearStart = currentMonth >= 3 ? currentYear : currentYear - 1;
+  const schoolYearStart = getSchoolYearInKst();
   const schoolYearEnd = schoolYearStart + 1;
   const firstSunday = getFirstSundayOfMonthKst(schoolYearStart, 3);
   const lastSunday = getLastSundayOfMonthKst(schoolYearEnd, 2);

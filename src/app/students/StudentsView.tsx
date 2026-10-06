@@ -2,8 +2,9 @@ import type { ReactNode } from 'react';
 
 import Link from 'next/link';
 
+import { getGenderLabel, getGradeDisplayLabel } from '@/lib/attendance';
 import { sortStudentsByGradeDescThenName } from '@/lib/student-sort';
-import { formatDateToKoreanYmd, getKoreanYear } from '@/utils/date';
+import { formatDateToKoreanYmd } from '@/utils/date';
 import { type StudentGradeLabel, getGradeLabelByBirthDateInKst, isGraduateByBirthDateInKst } from '@/utils/grade';
 
 import CollapsiblePanel from './CollapsiblePanel';
@@ -62,27 +63,6 @@ export function getSelectedGradeTab(gradeTab: string | string[] | undefined): St
  */
 function formatBirthDate(birthDate: Date): string {
   return formatDateToKoreanYmd(birthDate);
-}
-
-/**
- * 성별 코드를 한글 라벨로 변환한다.
- */
-function getGenderLabel(gender: 'MALE' | 'FEMALE'): string {
-  return gender === 'MALE' ? '남' : '여';
-}
-
-/**
- * 학년 표시 문자열을 반환한다. 유아부는 연 나이를 함께 표시한다.
- */
-function getGradeDisplayLabel(student: Pick<StudentRow, 'gradeLabel' | 'birthDate'>): string {
-  if (student.gradeLabel !== '유아부') {
-    return student.gradeLabel;
-  }
-
-  const currentYearInKst = getKoreanYear(new Date());
-  const yearlyAge = Math.max(0, currentYearInKst - getKoreanYear(student.birthDate));
-
-  return `유아부 (연 ${yearlyAge}세)`;
 }
 
 /**

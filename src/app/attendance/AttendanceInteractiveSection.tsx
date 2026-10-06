@@ -8,13 +8,8 @@ import { AttendanceStatus, Gender } from '@prisma/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useToast } from '@/components/common/ToastProvider';
+import { ATTENDANCE_TABS, type AttendanceTabKey, getGenderLabel, getGradeDisplayLabel } from '@/lib/attendance';
 import { getButtonClassName } from '@/lib/button';
-import {
-  ATTENDANCE_TABS,
-  type AttendanceTabKey,
-  getGenderLabel,
-  getGradeDisplayLabel,
-} from '@/server/attendance/service';
 import { formatDateToKoreanYmd } from '@/utils/date';
 
 import CollapsiblePanel from './CollapsiblePanel';
@@ -368,13 +363,6 @@ export default function AttendanceInteractiveSection({
   const studentsForTable = data.studentsForTable;
   const talentLogs = data.talentLogs;
 
-  function getStudentGradeDisplayLabel(student: SerializableStudentRow): string {
-    return getGradeDisplayLabel({
-      gradeLabel: student.gradeLabel as never,
-      birthDate: new Date(student.birthDate),
-    });
-  }
-
   function handleToggleAttendance(
     studentId: string,
     expectedCurrentStatus: AttendanceStatus,
@@ -445,9 +433,7 @@ export default function AttendanceInteractiveSection({
                   >
                     <div className="mb-2 flex items-center justify-between gap-2">
                       <p className="text-base font-semibold text-[var(--color-text)]">{student.name}</p>
-                      <p className="text-sm font-medium text-[var(--color-primary)]">
-                        {getStudentGradeDisplayLabel(student)}
-                      </p>
+                      <p className="text-sm font-medium text-[var(--color-primary)]">{getGradeDisplayLabel(student)}</p>
                     </div>
                     <p className="text-sm text-[var(--color-muted)]">
                       금주 추가 달란트{' '}
@@ -509,9 +495,7 @@ export default function AttendanceInteractiveSection({
                   >
                     <div className="mb-2 flex items-center justify-between gap-2">
                       <p className="text-base font-semibold text-[var(--color-text)]">{student.name}</p>
-                      <p className="text-sm font-medium text-[var(--color-primary)]">
-                        {getStudentGradeDisplayLabel(student)}
-                      </p>
+                      <p className="text-sm font-medium text-[var(--color-primary)]">{getGradeDisplayLabel(student)}</p>
                     </div>
                     <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
                       <dt className="text-[var(--color-muted)]">성별</dt>
@@ -570,9 +554,7 @@ export default function AttendanceInteractiveSection({
                 ) : (
                   studentsForTable.map((student) => (
                     <tr key={student.id} className="border-t border-[var(--color-border)]">
-                      <td className="px-2 py-2 text-sm text-[var(--color-muted)]">
-                        {getStudentGradeDisplayLabel(student)}
-                      </td>
+                      <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{getGradeDisplayLabel(student)}</td>
                       <td className="px-2 py-2 text-sm font-medium text-[var(--color-text)]">{student.name}</td>
                       <td className="px-2 py-2 text-sm font-semibold text-[var(--color-text)]">
                         {student.weeklyExtraTalent > 0 ? `+${student.weeklyExtraTalent}` : student.weeklyExtraTalent}
@@ -644,9 +626,7 @@ export default function AttendanceInteractiveSection({
 
                     return (
                       <tr key={student.id} className="border-t border-[var(--color-border)]">
-                        <td className="px-2 py-2 text-sm text-[var(--color-muted)]">
-                          {getStudentGradeDisplayLabel(student)}
-                        </td>
+                        <td className="px-2 py-2 text-sm text-[var(--color-muted)]">{getGradeDisplayLabel(student)}</td>
                         <td className="px-2 py-2 text-sm font-medium text-[var(--color-text)]">{student.name}</td>
                         <td className="px-2 py-2 text-sm text-[var(--color-muted)]">
                           {getGenderLabel(student.gender)}

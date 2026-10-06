@@ -52,3 +52,52 @@ export function getCurrentAgeInKst(birthDate: Date, baseDate: Date = new Date())
 
   return age;
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+/**
+ * 한국시간 기준 연/월/일의 자정(00:00 KST) Date를 만든다. 일 값이 범위를 넘으면 앞뒤 달로 이어진다.
+ */
+function toKstMidnight(year: number, month: number, day: number): Date {
+  return new Date(Date.UTC(year, month - 1, day) - KST_OFFSET_MS);
+}
+
+/**
+ * 한국시간 기준 요일 인덱스(일=0 ~ 토=6)를 반환한다.
+ */
+export function getKoreanWeekdayIndex(dateValue: Date): number {
+  const { year, month, day } = getKoreanDateParts(dateValue);
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+}
+
+/**
+ * 기준 시각이 속한 주(일~토)의 일요일 00:00(KST)을 반환한다.
+ */
+export function getCurrentSundayKstDate(baseDate: Date = new Date()): Date {
+  const { year, month, day } = getKoreanDateParts(baseDate);
+  return toKstMidnight(year, month, day - getKoreanWeekdayIndex(baseDate));
+}
+
+/**
+ * 날짜에 주 단위(7일)를 더한다. 음수면 이전 주로 이동한다.
+ */
+export function addWeeks(dateValue: Date, weeks: number): Date {
+  return new Date(dateValue.getTime() + weeks * 7 * DAY_MS);
+}
+
+/**
+ * 해당 연/월의 첫 번째 일요일 00:00(KST)을 반환한다.
+ */
+export function getFirstSundayOfMonthKst(year: number, month: number): Date {
+  const firstDayWeekdayIndex = new Date(Date.UTC(year, month - 1, 1)).getUTCDay();
+  return toKstMidnight(year, month, 1 + ((7 - firstDayWeekdayIndex) % 7));
+}
+
+/**
+ * 해당 연/월의 마지막 일요일 00:00(KST)을 반환한다.
+ */
+export function getLastSundayOfMonthKst(year: number, month: number): Date {
+  const lastDay = new Date(Date.UTC(year, month, 0));
+  return toKstMidnight(year, month, lastDay.getUTCDate() - lastDay.getUTCDay());
+}

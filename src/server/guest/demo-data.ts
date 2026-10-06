@@ -2,8 +2,8 @@ import { AttendanceStatus } from '@prisma/client';
 
 import type { StudentInput } from '@/app/students/StudentsView';
 import type { TeacherRow } from '@/app/teachers/TeachersView';
-import type { AttendanceTabKey } from '@/server/attendance/service';
-import { formatDateToKoreanYmd } from '@/utils/date';
+import { type AttendanceTabKey, filterStudentsByAttendanceTab } from '@/lib/attendance';
+import { addWeeks, formatDateToKoreanYmd, getCurrentSundayKstDate } from '@/utils/date';
 import { getGradeLabelByBirthDateInKst, getSchoolYearInKst } from '@/utils/grade';
 
 /**
@@ -16,12 +16,7 @@ import { getGradeLabelByBirthDateInKst, getSchoolYearInKst } from '@/utils/grade
  * 데모 화면이 항상 최근 날짜처럼 보이도록 고정값 대신 계산한다.
  */
 function getSundayYmd(weekOffset: number): string {
-  const todayKstYmd = formatDateToKoreanYmd(new Date());
-  const anchorDate = new Date(`${todayKstYmd}T00:00:00Z`);
-
-  anchorDate.setUTCDate(anchorDate.getUTCDate() - anchorDate.getUTCDay() + weekOffset * 7);
-
-  return anchorDate.toISOString().slice(0, 10);
+  return formatDateToKoreanYmd(addWeeks(getCurrentSundayKstDate(), weekOffset));
 }
 
 const WEEKLY_PRESENT_COUNTS = [18, 21, 19, 23, 20, 24, 22, 25, 21, 26, 24, 27];
@@ -207,16 +202,6 @@ export function getGuestTeachers(): TeacherRow[] {
   ];
 }
 
-const GRADE_LABEL_BY_ATTENDANCE_TAB: Partial<Record<AttendanceTabKey, string>> = {
-  grade_6: '6학년',
-  grade_5: '5학년',
-  grade_4: '4학년',
-  grade_3: '3학년',
-  grade_2: '2학년',
-  grade_1: '1학년',
-  kindergarten: '유아부',
-};
-
 const DEMO_WEEKLY_EXTRA_TALENTS = [3, 0, 1, 0, 2, 1, 0];
 
 /**
@@ -235,10 +220,7 @@ export function getGuestAttendanceData(selectedTab: AttendanceTabKey) {
     attendanceStatus: index % 3 === 2 ? AttendanceStatus.ABSENT : AttendanceStatus.PRESENT,
   }));
 
-  const targetGradeLabel = GRADE_LABEL_BY_ATTENDANCE_TAB[selectedTab];
-  const studentsForTable = targetGradeLabel
-    ? studentRows.filter((student) => student.gradeLabel === targetGradeLabel)
-    : studentRows;
+  const studentsForTable = filterStudentsByAttendanceTab(studentRows, selectedTab);
 
   const nowTimestamp = Date.now();
 

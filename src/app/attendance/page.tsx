@@ -1,10 +1,7 @@
 import type { Metadata } from 'next';
 
-import {
-  getAttendanceInteractiveData,
-  getAttendancePeriodInfo,
-  getSelectedAttendanceTab,
-} from '@/server/attendance/service';
+import { getAttendancePeriodInfo, getSelectedAttendanceTab } from '@/lib/attendance';
+import { getAttendanceInteractiveData } from '@/server/attendance/service';
 import { formatDateToKoreanYmd } from '@/utils/date';
 
 import AttendanceInteractiveSection from './AttendanceInteractiveSection';
