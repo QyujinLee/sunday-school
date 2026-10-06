@@ -3,9 +3,16 @@ import { NextRequest } from 'next/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const getTokenMock = vi.hoisted(() => vi.fn());
+const syncTeacherSnapshotMock = vi.hoisted(() => vi.fn());
 
 vi.mock('next-auth/jwt', () => ({
   getToken: getTokenMock,
+  encode: vi.fn(async () => 'reissued-session-token'),
+}));
+
+vi.mock('@/lib/auth', () => ({
+  DEFAULT_TOKEN_MAX_AGE_SECONDS: 60,
+  syncTeacherSnapshot: syncTeacherSnapshotMock,
 }));
 
 const { proxy } = await import('@/proxy');
@@ -30,6 +37,8 @@ function redirectTarget(response: Response): string | null {
 
 beforeEach(() => {
   getTokenMock.mockReset();
+  syncTeacherSnapshotMock.mockReset();
+  syncTeacherSnapshotMock.mockResolvedValue(false);
   vi.stubEnv('NEXTAUTH_URL', SITE_ORIGIN);
 });
 
@@ -170,5 +179,52 @@ describe('proxy - 캐노니컬 도메인', () => {
     const response = await proxy(new NextRequest('https://other.example.com/students?grade_tab=1학년'));
 
     expect(response.headers.get('location')).toBe(`${SITE_ORIGIN}/students?grade_tab=1%ED%95%99%EB%85%84`);
+  });
+});
+
+describe('proxy - 토큰 동기화와 쿠키 재발급', () => {
+  it('동기화 주기 안이면 쿠키를 다시 발급하지 않는다', async () => {
+    getTokenMock.mockResolvedValue({ approvalStatus: 'APPROVED', role: 'TEACHER' });
+
+    const response = await proxy(request('/students'));
+
+    expect(response.headers.get('set-cookie')).toBeNull();
+  });
+
+  it('동기화로 승인 상태가 바뀌면 이번 요청부터 반영하고 쿠키를 다시 발급한다', async () => {
+    getTokenMock.mockResolvedValue({ approvalStatus: 'APPROVED', role: 'TEACHER' });
+    syncTeacherSnapshotMock.mockImplementation(async (token: Record<string, unknown>) => {
+      token.approvalStatus = 'REJECTED';
+      return true;
+    });
+
+    const response = await proxy(request('/students'));
+
+    expect(redirectTarget(response)).toBe('/rejected');
+    expect(response.headers.get('set-cookie')).toContain('__Secure-next-auth.session-token=reissued-session-token');
+  });
+
+  it('승인 대기 중 승인되면 /pending에서 홈으로 보내고 쿠키를 다시 발급한다', async () => {
+    getTokenMock.mockResolvedValue({ approvalStatus: 'PENDING', role: 'TEACHER' });
+    syncTeacherSnapshotMock.mockImplementation(async (token: Record<string, unknown>) => {
+      token.approvalStatus = 'APPROVED';
+      return true;
+    });
+
+    const response = await proxy(request('/pending'));
+
+    expect(redirectTarget(response)).toBe('/');
+    expect(response.headers.get('set-cookie')).toContain('reissued-session-token');
+  });
+
+  it('삭제돼 승인 정보가 비워진 토큰은 /pending으로 보낸다', async () => {
+    getTokenMock.mockResolvedValue({ approvalStatus: 'APPROVED', role: 'TEACHER' });
+    syncTeacherSnapshotMock.mockImplementation(async (token: Record<string, unknown>) => {
+      delete token.approvalStatus;
+      delete token.role;
+      return true;
+    });
+
+    expect(redirectTarget(await proxy(request('/students')))).toBe('/pending');
   });
 });

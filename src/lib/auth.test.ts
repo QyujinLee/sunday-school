@@ -7,7 +7,7 @@ vi.mock('@/lib/prisma', () => ({
   prisma: { teacher: { findUnique: findUniqueMock } },
 }));
 
-const { authOptions } = await import('@/lib/auth');
+const { authOptions, syncTeacherSnapshot } = await import('@/lib/auth');
 
 /**
  * jwt 콜백을 사용자 로그인 직후가 아닌 일반 요청 조건으로 호출한다.
@@ -51,5 +51,29 @@ describe('authOptions.callbacks.jwt', () => {
 
     expect(token.role).toBe('TEACHER');
     expect(token.approvalStatus).toBe('REJECTED');
+  });
+});
+
+describe('syncTeacherSnapshot', () => {
+  it('마지막 동기화 후 5분이 지나지 않았으면 DB를 조회하지 않고 false를 반환한다', async () => {
+    const token = {
+      email: 'teacher@example.com',
+      teacherId: 'teacher-1',
+      role: 'TEACHER' as const,
+      approvalStatus: 'APPROVED' as const,
+      teacherSyncedAt: Math.floor(Date.now() / 1000) - 60,
+    };
+
+    expect(await syncTeacherSnapshot(token)).toBe(false);
+    expect(findUniqueMock).not.toHaveBeenCalled();
+  });
+
+  it('주기가 지났으면 DB와 동기화하고 동기화 시각을 갱신한다', async () => {
+    findUniqueMock.mockResolvedValue({ id: 'teacher-1', role: 'TEACHER', approvalStatus: 'APPROVED', name: null });
+    const token: JWT = { email: 'teacher@example.com', teacherSyncedAt: 0 };
+
+    expect(await syncTeacherSnapshot(token)).toBe(true);
+    expect(token.approvalStatus).toBe('APPROVED');
+    expect(token.teacherSyncedAt).toBeGreaterThan(0);
   });
 });
