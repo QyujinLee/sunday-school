@@ -2,6 +2,7 @@ import { Gender, Relationship } from '@prisma/client';
 import { z } from 'zod';
 
 const PHONE_NUMBER_REGEX = /^010-\d{4}-\d{4}$/;
+const YMD_DATE_SCHEMA = z.iso.date();
 const INVALID_PHONE_MARKER = '__INVALID_PHONE__';
 
 export const STUDENT_FIELD_LABELS: Record<string, string> = {
@@ -25,6 +26,13 @@ export type StudentInputPayload = {
   guardian_relationship: string;
   guardian_phone: string;
 };
+
+/**
+ * 실제 달력에 존재하는 yyyy-mm-dd 날짜인지 확인한다(2020-02-30 같은 값은 거부).
+ */
+export function isValidYmdDate(value: string): boolean {
+  return YMD_DATE_SCHEMA.safeParse(value).success;
+}
 
 /**
  * 문자열 입력값의 앞뒤 공백을 제거한다.
@@ -58,7 +66,11 @@ export const studentInputSchema = z
       .string()
       .refine((value) => Object.values(Gender).includes(value as Gender), '성별을 선택해 주세요.')
       .transform((value) => value as Gender),
-    birth_date: z.string().trim().min(1, '생년월일을 입력해 주세요.'),
+    birth_date: z
+      .string()
+      .trim()
+      .min(1, '생년월일을 입력해 주세요.')
+      .refine((value) => !value || isValidYmdDate(value), '생년월일 형식이 올바르지 않습니다.'),
     address: z.string().trim().min(1, '주소를 입력해 주세요.'),
     phone: z
       .string()

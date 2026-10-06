@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { normalizePhoneValue, normalizeTextValue } from '@/lib/validation/student';
+import { isValidYmdDate, normalizePhoneValue, normalizeTextValue } from '@/lib/validation/student';
 
 export const TEACHER_GRADE_OPTIONS = ['유아부', '1학년', '2학년', '3학년', '4학년', '5학년', '6학년'] as const;
 
@@ -20,7 +20,11 @@ export const teacherUpdateSchema = z.object({
     .string()
     .trim()
     .refine((value) => !value || PHONE_NUMBER_REGEX.test(value), '연락처는 010-0000-0000 형식으로 입력해 주세요.'),
-  birth_date: z.string().trim().optional(),
+  birth_date: z
+    .string()
+    .trim()
+    .refine((value) => !value || isValidYmdDate(value), '생년월일 형식이 올바르지 않습니다.')
+    .optional(),
   grade: z.preprocess((value) => {
     if (typeof value !== 'string') {
       return undefined;

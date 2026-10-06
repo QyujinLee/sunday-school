@@ -26,6 +26,10 @@ describe('parseTeacherUpdateInput', () => {
     expect(result.success).toBe(true);
   });
 
+  it('달력에 없는 생년월일은 실패한다', () => {
+    expect(parseTeacherUpdateInput({ ...validPayload, birth_date: '1990-02-30' }, true).success).toBe(false);
+  });
+
   it('담당학년 목록에 없는 값은 실패한다', () => {
     expect(parseTeacherUpdateInput({ ...validPayload, grade: '중등부' }, true).success).toBe(false);
   });

@@ -47,6 +47,16 @@ describe('parseStudentInput', () => {
     expect(result.success === false && toFieldErrorMap(result.error).name).toBeTruthy();
   });
 
+  it('달력에 없는 생년월일은 다음 날로 넘기지 않고 실패한다', () => {
+    for (const birthDate of ['2020-02-30', '2021-02-29', '2020-04-31', '2020-1-1']) {
+      const result = parseStudentInput({ ...validPayload, birth_date: birthDate });
+
+      expect(result.success === false && toFieldErrorMap(result.error).birth_date).toBeTruthy();
+    }
+
+    expect(parseStudentInput({ ...validPayload, birth_date: '2020-02-29' }).success).toBe(true);
+  });
+
   it('성별 값이 유효하지 않으면 실패한다', () => {
     const result = parseStudentInput({ ...validPayload, gender: 'UNKNOWN' });
 
