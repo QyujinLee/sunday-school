@@ -3,7 +3,7 @@
 다른 PC/세션에서도 이어서 작업할 수 있도록 **남은 개선 작업과 결정 사항**만 정리한다. 완료된 작업의 상세 내역은 `git log`에 있다.
 작업 규칙은 저장소 루트의 `CLAUDE.md` / `AGENTS.md`를 먼저 읽을 것. 신규 기능(구글 캘린더 쓰기 등) 계획은 `docs/FEATURE_PLAN.md`에 따로 있다.
 
-**최종 갱신**: 2026-10-06 (전수조사 반영, 브랜치 `fix/audit-improvements`)
+**최종 갱신**: 2026-10-07 (404 처리·BOM 제거·README 재작성 반영, 브랜치 `fix/audit-improvements`)
 
 ---
 
@@ -28,6 +28,8 @@
 | 구조 | KST 일요일 계산 4곳, 세션 가드 3곳의 중복을 각각 `src/utils/date.ts`, `src/lib/api-session.ts`로 통합 |
 | 성능 | 대시보드가 쓰지 않는 쿼리 3개를 제거하고, 독립 쿼리와 캘린더 호출을 `Promise.all`로 병렬화 |
 | 정리 | 죽은 컴포넌트, 미사용 의존성(`@auth/prisma-adapter`, `zustand`, `sass`), 중복 `CollapsiblePanel` 제거. `service.ts`의 BOM·유니코드 이스케이프 해소, 저장소 전체 prettier 통과 |
+| 정리 | 없는 학생·교사 수정·삭제가 500 대신 404(`not_found`)를 반환(Prisma `P2025`, `isRecordNotFoundError()`). `src`의 UTF-8 BOM 17개 파일 제거 |
+| 문서 | README 재작성(아키텍처·ER 다이어그램, 환경변수, 개발·배포) |
 
 ---
 
@@ -62,19 +64,11 @@
 | 졸업생의 출석 명단 포함 | 출석 관리 '전체' 탭에 졸업생도 보임(학생 관리에서만 분리됨) | 그대로 둠 / 출석 명단에서 제외 |
 | 학생 등록·수정 화면 | 폼은 클라이언트화됐지만 여전히 별도 페이지로 이동 | 그대로 둠 / 모달로 전환(사용해보고 판단) |
 
-### 2-3. 소규모 개선 (급하지 않음)
+### 2-3. README 스크린샷
 
-- 존재하지 않는 학생·교사를 수정·삭제하면 404가 아니라 500을 반환한다(Prisma `P2025`). 화면에서는 "잠시 후 다시 시도" 토스트로만 보이므로 사용자 영향은 작다.
-- `.ts/.tsx` 17개 파일에 UTF-8 BOM이 남아 있다. 동작·빌드에는 영향이 없고, 해당 파일을 수정할 때 함께 제거하면 된다(`.gitattributes`가 저장소 기준 LF로 정규화함).
+README 본문(아키텍처·ER 다이어그램, 구조, 환경변수, 개발·배포)은 2026-10-07에 재작성했다. 남은 것은 스크린샷뿐이다.
 
-### 2-4. README 재작성
-
-- **스크린샷**: 게스트 화면(`/guest/*`, 데모 데이터)으로 찍어 `docs/screenshots/`에 저장한다. 개인정보가 들어가지 않는다.
-- **아키텍처 다이어그램**: README에 Mermaid로 작성한다.
-  - 요청 흐름: 브라우저 → `src/proxy.ts`(인증·승인·권한 가드, 5분 주기 토큰 동기화) → Server Component(Prisma 직접 조회) / Client Component → `src/app/api/*` → Prisma → Neon Postgres
-  - 외부 연동: Google OAuth, Google Calendar API(7일 revalidate + 인메모리 폴백)
-  - 데이터 모델 ER 다이어그램: `prisma/schema.prisma` 기준
-- **추가 섹션**: 프로젝트 구조 트리, 렌더링 방식(전 페이지 동적 SSR, ISR 미사용 이유), 환경변수 목록(`DATABASE_URL`, `AUTH_SECRET`, `GOOGLE_CLIENT_ID/SECRET`, `NEXTAUTH_URL`, `ADMIN_EMAILS`, `GOOGLE_CALENDAR_ID/API_KEY`, **값은 절대 기재하지 않음**), 개발·배포 방법, `docs/*.md` 링크
+- 게스트 화면(`/guest/*`, 데모 데이터)으로 찍어 `docs/screenshots/`에 저장하고 README "주요 기능" 아래에 넣는다. 개인정보가 들어가지 않는다.
 
 ---
 
@@ -93,6 +87,7 @@
 
 ## 4. 작업 시 알아둘 것
 
+- **Node.js 20.9 이상**이 필요하다(Next.js 16). Node 18에서는 `yarn test`가 `ERR_REQUIRE_ESM`으로 시작조차 안 된다. 새 PC에서 `tsc`가 `.svg` import를 못 찾으면 gitignore 대상인 `next-env.d.ts`가 없는 것이므로 `yarn next typegen`(또는 `yarn dev` 한 번)으로 생성한다.
 - 테스트는 `vitest@5` + peer `vite@7`이다. yarn v1은 peer를 자동 설치하지 않는다.
 - `.prettierrc`의 `importOrder` 마지막에 `"^node:"` 그룹이 있다. eslint `import/order`와 prettier 정렬이 node 빌트인 위치를 두고 충돌해서 넣은 것이므로 지우지 않는다.
 - proxy는 Next.js 16 기본값인 **Node.js 런타임**에서 돌기 때문에 Prisma를 쓸 수 있다. `runtime` 설정은 proxy 파일에서 쓸 수 없다(설정하면 에러).
