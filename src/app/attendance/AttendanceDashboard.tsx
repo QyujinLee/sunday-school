@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import AttendanceTrendChart from '@/components/common/AttendanceTrendChart';
 

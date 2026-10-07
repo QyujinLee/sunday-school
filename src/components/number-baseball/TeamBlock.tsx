@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 

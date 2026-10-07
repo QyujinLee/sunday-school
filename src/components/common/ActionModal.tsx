@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 type ModalButtonTone = 'neutral' | 'primary' | 'danger';
 type ModalButtonVariant = 'outline' | 'solid';

@@ -1,4 +1,4 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 import StatusCard from '@/components/common/StatusCard';
 
