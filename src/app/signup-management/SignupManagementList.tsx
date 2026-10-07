@@ -90,6 +90,13 @@ export default function SignupManagementList({
                   ? '이미 삭제되었거나 존재하지 않습니다.'
                   : '잠시 후 다시 시도해 주세요.',
         });
+
+        // 이미 삭제된 계정이면 목록에서도 빼서 같은 버튼을 다시 누르지 않게 한다.
+        if (message === 'not_found') {
+          setPendingTeachers((prevTeachers) => prevTeachers.filter((teacher) => teacher.id !== teacherId));
+          setProcessedTeachers((prevTeachers) => prevTeachers.filter((teacher) => teacher.id !== teacherId));
+        }
+
         return null;
       }
 
