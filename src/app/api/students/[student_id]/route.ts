@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { requireApprovedTeacher } from '@/lib/api-session';
-import { prisma } from '@/lib/prisma';
+import { isRecordNotFoundError, prisma } from '@/lib/prisma';
 import {
   type StudentInputPayload,
   parseKstBirthDate,
@@ -96,7 +96,11 @@ export async function PATCH(request: Request, context: RouteContext) {
         });
       }
     });
-  } catch {
+  } catch (error) {
+    if (isRecordNotFoundError(error)) {
+      return NextResponse.json({ message: 'not_found' }, { status: 404 });
+    }
+
     return NextResponse.json({ message: 'server_error' }, { status: 500 });
   }
 
@@ -123,7 +127,11 @@ export async function DELETE(_request: Request, context: RouteContext) {
     await prisma.student.delete({
       where: { id: studentId },
     });
-  } catch {
+  } catch (error) {
+    if (isRecordNotFoundError(error)) {
+      return NextResponse.json({ message: 'not_found' }, { status: 404 });
+    }
+
     return NextResponse.json({ message: 'server_error' }, { status: 500 });
   }
 

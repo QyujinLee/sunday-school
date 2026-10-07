@@ -135,7 +135,12 @@ export default function StudentForm({ mode, studentId, initialValues }: StudentF
         showToast({
           variant: 'error',
           message: mode === 'create' ? '학생 등록에 실패했습니다.' : '학생 수정에 실패했습니다.',
-          description: response.status === 403 ? '권한이 없습니다.' : '잠시 후 다시 시도해 주세요.',
+          description:
+            response.status === 403
+              ? '권한이 없습니다.'
+              : response.status === 404
+                ? '이미 삭제되었거나 존재하지 않습니다.'
+                : '잠시 후 다시 시도해 주세요.',
         });
         return;
       }
@@ -175,7 +180,8 @@ export default function StudentForm({ mode, studentId, initialValues }: StudentF
         credentials: 'same-origin',
       });
 
-      if (!response.ok) {
+      // 이미 삭제된 학생(404)이면 삭제가 끝난 것과 같으므로 목록으로 보낸다.
+      if (!response.ok && response.status !== 404) {
         throw new Error('delete_failed');
       }
 

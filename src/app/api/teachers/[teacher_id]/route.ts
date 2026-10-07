@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { requireApprovedTeacher } from '@/lib/api-session';
-import { prisma } from '@/lib/prisma';
+import { isRecordNotFoundError, prisma } from '@/lib/prisma';
 import { toFieldErrorMap } from '@/lib/validation/student';
 import { type TeacherUpdatePayload, parseTeacherUpdateInput } from '@/lib/validation/teacher';
 
@@ -67,7 +67,11 @@ export async function PATCH(request: Request, context: RouteContext) {
         ...(guardResult.isAdmin ? { isActive: Boolean(teacherInput.is_active) } : {}),
       },
     });
-  } catch {
+  } catch (error) {
+    if (isRecordNotFoundError(error)) {
+      return NextResponse.json({ message: 'not_found' }, { status: 404 });
+    }
+
     return NextResponse.json({ message: 'server_error' }, { status: 500 });
   }
 

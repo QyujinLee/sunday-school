@@ -87,7 +87,12 @@ export default function TeacherEditForm({ teacherId, email, isAdmin, initialValu
         showToast({
           variant: 'error',
           message: '교사 정보 수정에 실패했습니다.',
-          description: response.status === 403 ? '수정 권한이 없습니다.' : '잠시 후 다시 시도해 주세요.',
+          description:
+            response.status === 403
+              ? '수정 권한이 없습니다.'
+              : response.status === 404
+                ? '이미 삭제되었거나 존재하지 않습니다.'
+                : '잠시 후 다시 시도해 주세요.',
         });
         return;
       }

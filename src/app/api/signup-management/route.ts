@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { requireAdminTeacher } from '@/lib/api-session';
-import { prisma } from '@/lib/prisma';
+import { isRecordNotFoundError, prisma } from '@/lib/prisma';
 import { TEACHER_APPROVAL_STATUS, TEACHER_ROLE } from '@/types/teacher';
 
 type SignupManagementRequestBody = {
@@ -67,7 +67,11 @@ export async function POST(request: Request) {
           processedAt: (updatedTeacher.approvalProcessedAt ?? updatedTeacher.updatedAt).toISOString(),
         },
       });
-    } catch {
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        return NextResponse.json({ message: 'not_found' }, { status: 404 });
+      }
+
       return NextResponse.json({ message: 'server_error' }, { status: 500 });
     }
   }
@@ -88,7 +92,11 @@ export async function POST(request: Request) {
         where: { id: teacherId },
         data: { role: nextRole },
       });
-    } catch {
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        return NextResponse.json({ message: 'not_found' }, { status: 404 });
+      }
+
       return NextResponse.json({ message: 'server_error' }, { status: 500 });
     }
 
@@ -104,7 +112,11 @@ export async function POST(request: Request) {
       await prisma.teacher.delete({
         where: { id: teacherId },
       });
-    } catch {
+    } catch (error) {
+      if (isRecordNotFoundError(error)) {
+        return NextResponse.json({ message: 'not_found' }, { status: 404 });
+      }
+
       return NextResponse.json({ message: 'server_error' }, { status: 500 });
     }
 

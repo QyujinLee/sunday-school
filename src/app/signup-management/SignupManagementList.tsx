@@ -86,7 +86,9 @@ export default function SignupManagementList({
               ? '본인 계정은 이 작업을 수행할 수 없습니다.'
               : message === 'forbidden'
                 ? '관리자 권한이 필요합니다.'
-                : '잠시 후 다시 시도해 주세요.',
+                : message === 'not_found'
+                  ? '이미 삭제되었거나 존재하지 않습니다.'
+                  : '잠시 후 다시 시도해 주세요.',
         });
         return null;
       }
