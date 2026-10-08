@@ -15,6 +15,14 @@
 - **대시보드**: 금주 출석 수, 13주 출석 추이, 분기 생일 학생, 이달·다음 달 생일 교사, 구글 캘린더의 주간 일정(사회·단상).
 - **게스트 둘러보기**: 대시보드·출석·학생·교사 화면을 데모 데이터로 공개합니다. DB를 조회하지 않고, 쓰기 버튼도 없습니다.
 
+### 화면 (게스트 모드, 데모 데이터)
+
+| 대시보드 | 출석 관리 |
+|---|---|
+| ![대시보드](docs/screenshots/guest-dashboard.png) | ![출석 관리](docs/screenshots/guest-attendance.png) |
+| **학생 관리** | **교사 정보** |
+| ![학생 관리](docs/screenshots/guest-students.png) | ![교사 정보](docs/screenshots/guest-teachers.png) |
+
 ## 기술 스택
 
 | 영역 | 사용 기술 |
