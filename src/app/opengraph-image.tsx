@@ -64,7 +64,9 @@ export default async function OpengraphImage() {
           boxShadow: '0 28px 58px rgba(16, 44, 92, 0.26)',
         }}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={logoDataUrl} width={260} height={260} alt="서광 주일학교 로고" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={textLogoDataUrl} width={520} height={106} alt="서광 주일학교" />
       </div>
     </div>,
