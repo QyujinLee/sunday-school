@@ -52,6 +52,15 @@ const eslintConfig = defineConfig([
       "import/namespace": "off",
     },
   },
+  {
+    // OG 이미지(ImageResponse)는 next/image를 쓸 수 없어 <img>가 맞다.
+    // 규칙 자체에 이 파일 예외가 있지만 경로 처리 버그로 Windows에서만 적용되지 않아
+    // 인라인 disable 주석은 OS마다 경고가 갈린다(Mac: 미사용 주석, Windows: no-img-element). 설정에서 끈다.
+    files: ["src/app/opengraph-image.tsx"],
+    rules: {
+      "@next/next/no-img-element": "off",
+    },
+  },
   eslintConfigPrettier,
   // Override default ignores of eslint-config-next.
   globalIgnores([
