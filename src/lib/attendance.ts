@@ -77,3 +77,16 @@ export function getGradeDisplayLabel(student: { gradeLabel: string; birthDate: D
   const yearlyAge = Math.max(0, getKoreanYear(new Date()) - getKoreanYear(new Date(student.birthDate)));
   return `유아부 (연 ${yearlyAge}세)`;
 }
+
+/**
+ * 출석 상태 변경 시 달란트 증감값을 계산한다.
+ * 출석은 +1, 출석 취소는 이번 주에 출석으로 받은 달란트가 남아 있을 때만 -1이다.
+ * 달란트 초기화가 이번 주 출석 지급 기록까지 지운 뒤 취소하면 받지 않은 달란트를 빼게 되므로 0을 반환한다.
+ */
+export function getAttendanceTalentDelta(nextStatus: 'PRESENT' | 'ABSENT', weeklyAttendanceTalent: number): 1 | -1 | 0 {
+  if (nextStatus === 'PRESENT') {
+    return 1;
+  }
+
+  return weeklyAttendanceTalent > 0 ? -1 : 0;
+}

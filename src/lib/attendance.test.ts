@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { filterStudentsByAttendanceTab, getAttendancePeriodInfo, getSelectedAttendanceTab } from '@/lib/attendance';
+import {
+  filterStudentsByAttendanceTab,
+  getAttendancePeriodInfo,
+  getAttendanceTalentDelta,
+  getSelectedAttendanceTab,
+} from '@/lib/attendance';
 import { formatDateToKoreanYmd } from '@/utils/date';
 
 const students = [
@@ -46,5 +51,20 @@ describe('getAttendancePeriodInfo', () => {
 
     expect(formatDateToKoreanYmd(attendanceDate)).toBe('2026-10-04');
     expect(formatDateToKoreanYmd(nextSundayDate)).toBe('2026-10-11');
+  });
+});
+
+describe('getAttendanceTalentDelta', () => {
+  it('출석은 항상 +1이다', () => {
+    expect(getAttendanceTalentDelta('PRESENT', 0)).toBe(1);
+    expect(getAttendanceTalentDelta('PRESENT', 1)).toBe(1);
+  });
+
+  it('이번 주 출석 지급분이 있으면 취소 시 -1이다', () => {
+    expect(getAttendanceTalentDelta('ABSENT', 1)).toBe(-1);
+  });
+
+  it('달란트 초기화로 이번 주 출석 지급분이 지워졌으면 취소해도 달란트를 빼지 않는다', () => {
+    expect(getAttendanceTalentDelta('ABSENT', 0)).toBe(0);
   });
 });

@@ -69,10 +69,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'invalid_request' }, { status: 400 });
     }
 
+    const { attendanceDate, nextSundayDate } = getAttendancePeriodInfo();
+
     try {
       const result = await updateAttendanceWithExpectedStatus(
         body.student_id,
-        getAttendancePeriodInfo().attendanceDate,
+        attendanceDate,
+        nextSundayDate,
         body.expected_current_status,
         body.next_status,
         validatedSession.teacherId

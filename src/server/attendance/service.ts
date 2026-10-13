@@ -1,6 +1,11 @@
 import { AttendanceStatus, type Gender, Prisma, TalentTransactionReason } from '@prisma/client';
 
-import { type AttendanceTabKey, filterStudentsByAttendanceTab, getAttendancePeriodInfo } from '@/lib/attendance';
+import {
+  type AttendanceTabKey,
+  filterStudentsByAttendanceTab,
+  getAttendancePeriodInfo,
+  getAttendanceTalentDelta,
+} from '@/lib/attendance';
 import { prisma } from '@/lib/prisma';
 import { sortStudentsByGradeDescThenName } from '@/lib/student-sort';
 import { type WeeklyCalendarSummary, getWeeklyCalendarSummary } from '@/server/calendar/google-calendar';
@@ -255,12 +260,14 @@ export async function updateStudentTalent(
 }
 
 /**
- * 클라이언트가 본 상태(expectedCurrentStatus)와 DB 상태가 같을 때만 출석을 변경하고 달란트를 ±1 연동한다.
+ * 클라이언트가 본 상태(expectedCurrentStatus)와 DB 상태가 같을 때만 출석을 변경하고 달란트를 연동한다.
+ * 출석은 +1, 취소는 이번 주 출석 지급분이 남아 있을 때만 -1(getAttendanceTalentDelta 참고).
  * 다른 교사가 먼저 변경해 상태가 다르면 stale_state를 반환한다.
  */
 export async function updateAttendanceWithExpectedStatus(
   studentId: string,
   attendanceDate: Date,
+  nextSundayDate: Date,
   expectedCurrentStatus: AttendanceStatus,
   nextStatus: AttendanceStatus,
   teacherId: string
@@ -293,8 +300,31 @@ export async function updateAttendanceWithExpectedStatus(
           update: { status: nextStatus },
         });
 
-        // 위에서 currentStatus !== nextStatus를 확인했으므로 PRESENT/ABSENT 전환만 남는다.
-        const talentDelta = nextStatus === AttendanceStatus.PRESENT ? 1 : -1;
+        // 취소할 때만 이번 주 출석 지급분을 확인한다. 달란트 초기화가 지급 기록을 지웠으면 0이다.
+        let weeklyAttendanceTalent = 0;
+
+        if (nextStatus === AttendanceStatus.ABSENT) {
+          const weeklyAttendanceSummary = await tx.talentTransaction.aggregate({
+            where: {
+              studentId,
+              reason: TalentTransactionReason.ATTENDANCE,
+              transactedAt: { gte: attendanceDate, lt: nextSundayDate },
+            },
+            _sum: { amount: true },
+          });
+          weeklyAttendanceTalent = weeklyAttendanceSummary._sum.amount ?? 0;
+        }
+
+        const talentDelta = getAttendanceTalentDelta(nextStatus, weeklyAttendanceTalent);
+
+        if (talentDelta === 0) {
+          const student = await tx.student.findUniqueOrThrow({
+            where: { id: studentId },
+            select: { currentTalent: true },
+          });
+
+          return { result: 'updated' as const, nextStatus, currentTalent: student.currentTalent, talentDelta };
+        }
 
         const updatedStudent = await tx.student.update({
           where: { id: studentId },
