@@ -36,7 +36,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ message: 'invalid_request' }, { status: 400 });
   }
 
-  const parsedResult = parseTeacherUpdateInput(payload, guardResult.isAdmin);
+  // 비활성 교사는 서비스에서 차단되므로, 관리자가 자기 계정을 비활성화해 스스로 잠기지 않도록 본인 계정은 제외한다.
+  const canChangeActiveState = guardResult.isAdmin && !isSelf;
+  const parsedResult = parseTeacherUpdateInput(payload, canChangeActiveState);
 
   if (!parsedResult.success) {
     return NextResponse.json(
@@ -63,8 +65,8 @@ export async function PATCH(request: Request, context: RouteContext) {
         phone: teacherInput.phone || null,
         birthDate,
         grade: teacherInput.grade ?? null,
-        // 활성 상태는 관리자만 변경할 수 있어 일반 교사 요청에서는 필드를 건드리지 않는다.
-        ...(guardResult.isAdmin ? { isActive: Boolean(teacherInput.is_active) } : {}),
+        // 활성 상태는 관리자가 다른 교사에게만 변경할 수 있어 그 외 요청에서는 필드를 건드리지 않는다.
+        ...(canChangeActiveState ? { isActive: Boolean(teacherInput.is_active) } : {}),
       },
     });
   } catch (error) {

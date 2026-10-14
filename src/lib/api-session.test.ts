@@ -62,6 +62,18 @@ describe('requireApprovedTeacher', () => {
     expect((await requireApprovedTeacher()).ok).toBe(false);
   });
 
+  it('비활성 교사는 403을 반환한다', async () => {
+    getServerSessionMock.mockResolvedValue(sessionUser({ isActive: false }));
+
+    expect((await requireApprovedTeacher()).ok).toBe(false);
+  });
+
+  it('isActive가 없는 세션은 활성으로 본다', async () => {
+    getServerSessionMock.mockResolvedValue(sessionUser({ isActive: undefined }));
+
+    expect((await requireApprovedTeacher()).ok).toBe(true);
+  });
+
   it('승인된 일반 교사는 통과하되 관리자 플래그는 false다', async () => {
     getServerSessionMock.mockResolvedValue(sessionUser());
 
@@ -93,6 +105,12 @@ describe('requireAdminTeacher', () => {
 
   it('승인되지 않은 관리자는 403을 반환한다', async () => {
     getServerSessionMock.mockResolvedValue(sessionUser({ role: 'ADMIN', approvalStatus: 'PENDING' }));
+
+    expect((await requireAdminTeacher()).ok).toBe(false);
+  });
+
+  it('비활성 관리자는 403을 반환한다', async () => {
+    getServerSessionMock.mockResolvedValue(sessionUser({ role: 'ADMIN', isActive: false }));
 
     expect((await requireAdminTeacher()).ok).toBe(false);
   });

@@ -9,6 +9,7 @@ declare module 'next-auth' {
       id?: string;
       role?: TeacherRole;
       approvalStatus?: TeacherApprovalStatus;
+      isActive?: boolean;
     } & Session['user'];
   }
 }
@@ -18,5 +19,6 @@ declare module 'next-auth/jwt' {
     teacherId?: string;
     role?: TeacherRole;
     approvalStatus?: TeacherApprovalStatus;
+    isActive?: boolean;
   }
 }

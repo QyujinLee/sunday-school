@@ -18,6 +18,7 @@ type AppShellProps = {
   children: ReactNode;
   role?: TeacherRole;
   approvalStatus?: TeacherApprovalStatus;
+  isActive?: boolean;
   userDisplayName: string;
 };
 
@@ -85,14 +86,15 @@ function isActiveMenu(pathname: string, url: string): boolean {
 /**
  * 앱 공통 헤더와 반응형 메뉴 셸을 렌더링한다.
  */
-export default function AppShell({ children, role, approvalStatus, userDisplayName }: AppShellProps) {
+export default function AppShell({ children, role, approvalStatus, isActive, userDisplayName }: AppShellProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const themeMode = useSyncExternalStore(subscribeThemeMode, getThemeModeSnapshot, getThemeModeServerSnapshot);
   const isDarkMode = themeMode === 'dark';
   const pathname = usePathname();
   const isSignedIn = Boolean(role);
   const isAdmin = role === 'ADMIN';
-  const isApproved = approvalStatus === 'APPROVED';
+  // 비활성 교사는 /inactive 안내 화면만 보므로 승인 상태여도 메뉴를 숨긴다.
+  const isApproved = approvalStatus === 'APPROVED' && isActive !== false;
   const isHomePage = pathname === '/';
   // 게스트 화면에서는 로고가 둘러보기 홈으로 가야 한다. 홈(/)은 비로그인에게 공개되지 않아 로그인 화면으로 튕긴다.
   const isGuestPath = pathname === '/guest' || pathname.startsWith('/guest/');

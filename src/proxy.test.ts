@@ -146,6 +146,51 @@ describe('proxy - 승인 상태 분기', () => {
   });
 });
 
+describe('proxy - 비활성 교사', () => {
+  it('비활성 교사는 /inactive로 보낸다', async () => {
+    getTokenMock.mockResolvedValue({ approvalStatus: 'APPROVED', role: 'TEACHER', isActive: false });
+
+    expect(redirectTarget(await proxy(request('/students')))).toBe('/inactive');
+    expect(redirectTarget(await proxy(request('/')))).toBe('/inactive');
+  });
+
+  it('비활성 관리자도 관리자 경로에 접근할 수 없다', async () => {
+    getTokenMock.mockResolvedValue({ approvalStatus: 'APPROVED', role: 'ADMIN', isActive: false });
+
+    expect(redirectTarget(await proxy(request('/signup-management')))).toBe('/inactive');
+  });
+
+  it('비활성 교사는 /inactive에 머무를 수 있다', async () => {
+    getTokenMock.mockResolvedValue({ approvalStatus: 'APPROVED', role: 'TEACHER', isActive: false });
+
+    expect(redirectTarget(await proxy(request('/inactive')))).toBeNull();
+  });
+
+  it('비활성 교사가 로그인 페이지에 접근하면 /inactive로 보낸다', async () => {
+    getTokenMock.mockResolvedValue({ approvalStatus: 'APPROVED', role: 'TEACHER', isActive: false });
+
+    expect(redirectTarget(await proxy(request('/login')))).toBe('/inactive');
+  });
+
+  it('활성 교사가 /inactive에 접근하면 홈으로 보낸다', async () => {
+    getTokenMock.mockResolvedValue({ approvalStatus: 'APPROVED', role: 'TEACHER', isActive: true });
+
+    expect(redirectTarget(await proxy(request('/inactive')))).toBe('/');
+  });
+
+  it('isActive가 없는 이전 토큰은 활성으로 본다 - 배포 직후 동기화 전까지 차단하지 않도록', async () => {
+    getTokenMock.mockResolvedValue({ approvalStatus: 'APPROVED', role: 'TEACHER' });
+
+    expect(redirectTarget(await proxy(request('/students')))).toBeNull();
+  });
+
+  it('승인 대기 상태가 비활성보다 우선한다', async () => {
+    getTokenMock.mockResolvedValue({ approvalStatus: 'PENDING', role: 'TEACHER', isActive: false });
+
+    expect(redirectTarget(await proxy(request('/inactive')))).toBe('/pending');
+  });
+});
+
 describe('proxy - 관리자 전용 경로', () => {
   it('일반 교사의 /signup-management 접근을 차단한다', async () => {
     getTokenMock.mockResolvedValue({ approvalStatus: 'APPROVED', role: 'TEACHER' });

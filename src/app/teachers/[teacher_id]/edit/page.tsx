@@ -73,7 +73,13 @@ export default async function TeacherEditPage({ params }: TeacherEditPageProps) 
           </Link>
         </div>
 
-        <TeacherEditForm teacherId={teacherId} email={teacher.email} isAdmin={isAdmin} initialValues={initialValues} />
+        <TeacherEditForm
+          teacherId={teacherId}
+          email={teacher.email}
+          isAdmin={isAdmin}
+          isSelf={isSelf}
+          initialValues={initialValues}
+        />
       </section>
     </main>
   );

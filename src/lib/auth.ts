@@ -9,7 +9,7 @@ const TEACHER_SESSION_SYNC_INTERVAL_SECONDS = 60 * 5;
 export const DEFAULT_TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
 /**
- * 토큰의 교사 스냅샷(id·권한·승인 상태)을 DB와 동기화한다.
+ * 토큰의 교사 스냅샷(id·권한·승인 상태·활성 여부)을 DB와 동기화한다.
  * 마지막 동기화 후 5분이 지나지 않았으면 건너뛰며, DB를 조회해 토큰을 바꿨으면 true를 반환한다.
  * jwt 콜백과 proxy(쿠키 재발급)가 함께 사용한다.
  */
@@ -39,12 +39,14 @@ export async function syncTeacherSnapshot(token: JWT, force = false): Promise<bo
     delete token.teacherId;
     delete token.role;
     delete token.approvalStatus;
+    delete token.isActive;
     return true;
   }
 
   token.teacherId = teacher.id;
   token.role = teacher.role;
   token.approvalStatus = teacher.approvalStatus;
+  token.isActive = teacher.isActive;
   token.name = teacher.name ?? token.name;
 
   return true;
@@ -109,6 +111,7 @@ export const authOptions: NextAuthOptions = {
         session.user.name = token.name as string | undefined;
         session.user.role = token.role as 'ADMIN' | 'TEACHER' | undefined;
         session.user.approvalStatus = token.approvalStatus as 'PENDING' | 'APPROVED' | 'REJECTED' | undefined;
+        session.user.isActive = token.isActive;
       }
 
       return session;

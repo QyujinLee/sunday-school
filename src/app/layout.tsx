@@ -98,6 +98,7 @@ export default async function RootLayout({
           <AppShell
             role={session?.user?.role}
             approvalStatus={session?.user?.approvalStatus}
+            isActive={session?.user?.isActive}
             userDisplayName={userDisplayName}
           >
             {children}

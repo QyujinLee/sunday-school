@@ -15,6 +15,7 @@ type TeacherEditFormProps = {
   teacherId: string;
   email: string;
   isAdmin: boolean;
+  isSelf: boolean;
   initialValues: {
     name: string;
     phone: string;
@@ -29,8 +30,10 @@ type FieldErrorMap = Partial<Record<keyof TeacherUpdatePayload, string>>;
 /**
  * 교사 정보 수정 폼을 렌더링하고 API를 통해 저장한다.
  */
-export default function TeacherEditForm({ teacherId, email, isAdmin, initialValues }: TeacherEditFormProps) {
+export default function TeacherEditForm({ teacherId, email, isAdmin, isSelf, initialValues }: TeacherEditFormProps) {
   const router = useRouter();
+  // 서버도 같은 조건으로 활성 상태 변경을 무시한다(관리자의 본인 계정 비활성화 방지).
+  const canChangeActiveState = isAdmin && !isSelf;
   const { showToast } = useToast();
   const [fieldErrors, setFieldErrors] = useState<FieldErrorMap>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -177,11 +180,14 @@ export default function TeacherEditForm({ teacherId, email, isAdmin, initialValu
             name="is_active"
             type="checkbox"
             defaultChecked={initialValues.is_active}
-            disabled={!isAdmin}
+            disabled={!canChangeActiveState}
             className="h-4 w-4 rounded border border-[var(--color-border-strong)]"
           />
           활성 상태
           {!isAdmin ? <span className="text-xs text-[var(--color-muted)]">(관리자 전용)</span> : null}
+          {isAdmin && isSelf ? (
+            <span className="text-xs text-[var(--color-muted)]">(본인 계정은 변경 불가)</span>
+          ) : null}
         </label>
       </div>
 

@@ -17,13 +17,18 @@ type SessionGuardResult =
   | { ok: false; response: NextResponse<{ message: string }> };
 
 /**
- * 승인 상태가 APPROVED인 교사 세션인지 검증한다.
+ * 승인 상태가 APPROVED이고 비활성이 아닌 교사 세션인지 검증한다.
+ * isActive가 없는 이전 토큰은 활성으로 본다.
  */
 export async function requireApprovedTeacher(): Promise<SessionGuardResult> {
   const session = await getServerSession(authOptions);
   const teacherId = session?.user?.id;
 
-  if (!teacherId || session.user.approvalStatus !== TEACHER_APPROVAL_STATUS.APPROVED) {
+  if (
+    !teacherId ||
+    session.user.approvalStatus !== TEACHER_APPROVAL_STATUS.APPROVED ||
+    session.user.isActive === false
+  ) {
     return {
       ok: false,
       response: NextResponse.json({ message: 'forbidden' }, { status: 403 }),

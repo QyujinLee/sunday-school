@@ -10,6 +10,8 @@ const PUBLIC_PATHS = ['/login'];
 const GUEST_PATH_PREFIX = '/guest';
 const PENDING_PATH = '/pending';
 const REJECTED_PATH = '/rejected';
+const INACTIVE_PATH = '/inactive';
+const STATUS_PATHS = [PENDING_PATH, REJECTED_PATH, INACTIVE_PATH];
 
 /**
  * NEXTAUTH_URL에서 캐노니컬 Origin을 파싱한다.
@@ -63,14 +65,20 @@ function buildLoginUrl(req: NextRequest): URL {
 }
 
 /**
- * 승인 상태에 따라 이동해야 하는 상태 페이지 경로를 반환한다.
+ * 서비스를 이용할 수 없는 토큰이면 머물러야 하는 상태 페이지 경로를, 이용 가능하면 null을 반환한다.
+ * 승인 상태를 먼저 보고, 승인된 교사 중 비활성인 경우만 /inactive로 보낸다.
+ * isActive가 없는 이전 토큰은 활성으로 본다(동기화 주기에 채워짐).
  */
-function getApprovalStatusPath(approvalStatus: unknown): string {
-  if (approvalStatus === 'REJECTED') {
+function getBlockedStatusPath(token: JWT): string | null {
+  if (token.approvalStatus === 'REJECTED') {
     return REJECTED_PATH;
   }
 
-  return PENDING_PATH;
+  if (token.approvalStatus !== 'APPROVED') {
+    return PENDING_PATH;
+  }
+
+  return token.isActive === false ? INACTIVE_PATH : null;
 }
 
 /**
@@ -153,30 +161,23 @@ export async function proxy(req: NextRequest) {
 }
 
 /**
- * 로그인된 토큰의 승인 상태·권한에 따라 리다이렉트 또는 통과 응답을 만든다.
+ * 로그인된 토큰의 승인 상태·활성 여부·권한에 따라 리다이렉트 또는 통과 응답을 만든다.
  */
 function resolveAuthorizedResponse(req: NextRequest, token: JWT): NextResponse {
   const { pathname } = req.nextUrl;
-  const approvalStatusPath = getApprovalStatusPath(token.approvalStatus);
-  const isStatusPage = pathname === PENDING_PATH || pathname === REJECTED_PATH;
+  const blockedStatusPath = getBlockedStatusPath(token);
 
-  if (token.approvalStatus !== 'APPROVED' && pathname !== approvalStatusPath) {
-    return NextResponse.redirect(new URL(approvalStatusPath, req.url));
+  if (blockedStatusPath) {
+    return pathname === blockedStatusPath
+      ? NextResponse.next()
+      : NextResponse.redirect(new URL(blockedStatusPath, req.url));
   }
 
-  if (token.approvalStatus === 'APPROVED' && isStatusPage) {
+  if (STATUS_PATHS.includes(pathname) || pathname === '/login') {
     return NextResponse.redirect(new URL('/', req.url));
   }
 
   if (pathname.startsWith('/signup-management') && token.role !== 'ADMIN') {
-    return NextResponse.redirect(new URL('/', req.url));
-  }
-
-  if (pathname === '/login') {
-    if (token.approvalStatus !== 'APPROVED') {
-      return NextResponse.redirect(new URL(approvalStatusPath, req.url));
-    }
-
     return NextResponse.redirect(new URL('/', req.url));
   }
 

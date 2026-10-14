@@ -36,10 +36,17 @@ describe('authOptions.callbacks.jwt', () => {
     expect(token.teacherId).toBeUndefined();
     expect(token.role).toBeUndefined();
     expect(token.approvalStatus).toBeUndefined();
+    expect(token.isActive).toBeUndefined();
   });
 
   it('교사가 존재하면 DB의 승인 상태와 권한으로 갱신한다', async () => {
-    findUniqueMock.mockResolvedValue({ id: 'teacher-1', role: 'TEACHER', approvalStatus: 'REJECTED', name: '김교사' });
+    findUniqueMock.mockResolvedValue({
+      id: 'teacher-1',
+      role: 'TEACHER',
+      approvalStatus: 'REJECTED',
+      isActive: false,
+      name: '김교사',
+    });
 
     const token = await runJwtCallback({
       email: 'teacher@example.com',
@@ -51,6 +58,7 @@ describe('authOptions.callbacks.jwt', () => {
 
     expect(token.role).toBe('TEACHER');
     expect(token.approvalStatus).toBe('REJECTED');
+    expect(token.isActive).toBe(false);
   });
 });
 
