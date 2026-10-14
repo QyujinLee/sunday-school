@@ -3,17 +3,17 @@
 다른 PC/세션에서도 이어서 작업할 수 있도록 기술 검증 결과, 결정 사항, 구현 단계를 기록한다.
 작업 규칙은 저장소 루트의 `CLAUDE.md` / `AGENTS.md`를 먼저 읽을 것. 기존 개선 작업은 `docs/IMPROVEMENT_PLAN.md` 참고.
 
-**최종 갱신**: 2026-09-15 (기술 검증 완료, 주요 방식 결정, 구현 전)
+**최종 갱신**: 2026-10-14 (게스트 모드 구현 완료, 캘린더 쓰기는 4-0 사전 시험 대기)
 
 ---
 
 ## 요약
 
-| 기능 | 가능 여부 | 권장 방식 | 선결 조건 |
+| 기능 | 상태 | 방식 | 선결 조건 |
 |---|---|---|---|
-| 사회·단상 순서, 주간 일정 목록 입력 | **가능** | 서비스 계정 + 캘린더 공유(`writer`). 그 주 이벤트의 제목·설명을 수정 | 서비스 계정 생성·캘린더 공유 후 **실제 쓰기 시험(4-0)** 통과 |
-| 날짜별 개별 일정 생성·수정·삭제 | **가능** | 앱이 만들 때 표식(`extendedProperties.private`)을 넣고, **표식이 있는 일정만** 수정·삭제 | 위와 같음 |
-| 게스트 모드 (비로그인 둘러보기) | **가능** | `/guest/*` 별도 경로 + 데모 데이터 | 없음 |
+| 사회·단상 순서, 주간 일정 목록 입력 | **미착수** (4-0 대기) | 서비스 계정 + 캘린더 공유(`writer`). 그 주 이벤트의 제목·설명을 수정 | 서비스 계정 생성·캘린더 공유 후 **실제 쓰기 시험(4-0)** 통과 |
+| 날짜별 개별 일정 생성·수정·삭제 | **미착수** (4-0 대기) | 앱이 만들 때 표식(`extendedProperties.private`)을 넣고, **표식이 있는 일정만** 수정·삭제 | 위와 같음 |
+| 게스트 모드 (비로그인 둘러보기) | **완료** (2026-09~10) | `/guest/*` 별도 경로 + 데모 데이터 | — |
 
 ---
 
@@ -32,10 +32,10 @@
 
 ### 인증/접근 제어
 
-- `src/proxy.ts`: 공개 경로는 `/`, `/login`뿐. 그 외(API 포함)는 미로그인 시 `/login`으로 리다이렉트.
+- `src/proxy.ts`: 공개 경로는 `/login`과 `/guest` 이하뿐(홈 `/`은 메뉴의 외부 링크 때문에 비공개). 그 외(API 포함)는 미로그인 시 `/login`으로 리다이렉트.
 - `src/lib/auth.ts`: next-auth v4 Google provider **기본 스코프**, JWT 세션. DB adapter/Account 테이블이 없어 **구글 access/refresh token을 저장하지 않는다.**
-- 쓰기 API는 모두 서버에서 승인 상태를 검증한다: `src/lib/api-session.ts`의 `requireApprovedTeacher()`/`requireAdminTeacher()`, 또는 같은 조건을 직접 검사(`src/app/api/attendance/interactive/route.ts`, `src/app/api/students/talent-reset/route.ts`(ADMIN), `src/app/api/students/[student_id]/attendance-ledger/route.ts`). → 세션이 없는 게스트는 403.
-- 정책 문서: `docs/PRD.md` "로그인하지 않은 사용자가 임의 URL로 접근하면 로그인 페이지로 리다이렉트", `docs/PROJECT_POLICY.md` "로그인 사용자만 서비스 접근 가능". → **게스트 모드는 정책 변경**이므로 문서 갱신 필수.
+- 쓰기 API는 모두 서버에서 승인 상태를 검증한다: `src/lib/api-session.ts`의 `requireApprovedTeacher()`/`requireAdminTeacher()`(`/api/auth`를 뺀 모든 API route가 사용, 비활성 교사도 차단). → 세션이 없는 게스트는 403.
+- 정책 문서: `docs/PRD.md`·`docs/PROJECT_POLICY.md`·`CLAUDE.md`에 게스트 경로 예외가 반영돼 있다(5-5 완료).
 
 ### 개인정보 노출 지점
 
@@ -141,7 +141,7 @@
 | 운영 | 게스트 방문이 DB 조회를 만들지 않음 | 게스트 방문마다 DB 조회 |
 | 단점 | 실제 운영 현황은 보여줄 수 없음, fixture 유지보수 | 누락 리스크, 정책 변경 폭이 큼 |
 
-→ **A로 결정(2026-09-15).** 목적이 "시스템이 어떤지 보여주기"라 실데이터가 필요 없다. 부수 효과로 `docs/IMPROVEMENT_PLAN.md` Phase 3(README 스크린샷)을 **개인정보 없이** 게스트 화면으로 찍을 수 있다.
+→ **A로 결정(2026-09-15).** 목적이 "시스템이 어떤지 보여주기"라 실데이터가 필요 없다. 부수 효과로 README 스크린샷을 **개인정보 없이** 게스트 화면으로 찍었다(`docs/screenshots/`).
 
 ### 마스킹 규칙 (B 선택 시, 또는 A에서도 실데이터가 섞이는 경우)
 
@@ -167,32 +167,33 @@
 
 → **1 권장.** 실데이터 경로의 보안 동작이 바뀌지 않는다.
 
-### 게스트 화면 범위 (제안)
+### 게스트 화면 범위 (구현 결과)
 
-- 공개: 대시보드, 출석 관리, 학생 관리, 교사 정보 (모두 데모 데이터), 레크레이션(개인정보 없음)
+- 공개: 대시보드, 출석 관리, 학생 관리, 교사 정보 4개(모두 데모 데이터, `src/lib/menu-items.ts`의 게스트 메뉴). 제안 단계의 레크레이션은 넣지 않았다.
 - 제외: 가입 관리, **외부 링크 메뉴 전부**(회의록·재정 관리·자료 모음·연간 계획)
-- 모든 쓰기 버튼 비활성 + "게스트 모드에서는 저장되지 않습니다" 안내
-- 상단에 "게스트 모드 · 예시 데이터" 배너
+- 쓰기 버튼은 비활성 안내 대신 **아예 렌더링하지 않는다**(`CLAUDE.md` 인증/권한 원칙)
+- 상단 배너(`src/app/guest/layout.tsx`): "게스트 모드 · 예시 데이터" 안내 + 둘러보기 홈·로그인 링크
 
 ### 구현 단계
 
-- **5-0 결정**: 데이터 방식(A/B), 공개 화면 범위
-- **5-1 라우트 가드**: `src/proxy.ts`에 `/guest` 공개 경로 추가. **테스트 먼저**: `src/proxy.test.ts`에 `/guest` 허용 + 기존 경로는 여전히 차단되는 케이스 추가(권한 판정 변경 시 테스트 선행 원칙)
-- **5-2 데모 데이터**: `src/server/guest/` 아래 fixture. 날짜는 `src/utils/date.ts` 기준 **오늘(KST) 기준 상대값**으로 만들어 대시보드가 항상 최신처럼 보이게 하고, 학년은 `src/utils/grade.ts`로 계산되도록 생년월일을 구성
-- **5-3 페이지 분리** ✅ 학생·교사 완료: `StudentsView.tsx`, `TeachersView.tsx`로 표시 컴포넌트를 분리해 실데이터/게스트 페이지가 함께 사용한다. 쓰기 진입점은 `canManage`(학생) / `canManageAll`·`currentTeacherId`(교사)로 가린다. 대시보드는 `AttendanceDashboard.tsx`에 `canRefreshCalendar` 추가. 출석 화면은 `AttendanceInteractiveSection.tsx`에 `canManage`·`basePath` 추가 — 버튼을 가릴 뿐 아니라 **React Query 재조회까지 끈다**(조회 API도 승인 세션이 필요하므로 켜두면 403)
-- **5-4 UI**: `src/components/layout/AppShell.tsx`(현재 `isSignedIn && isApproved`일 때만 메뉴 표시)에 게스트 배너·메뉴 처리, `src/lib/menu-items.ts`에 게스트용 메뉴(외부 링크 제외)
+- **5-0 결정** ✅: 데이터 방식 A(데모 데이터), 공개 화면 4개
+- **5-1 라우트 가드** ✅: `src/proxy.ts`에 `/guest` 공개 경로 추가. **테스트 먼저**: `src/proxy.test.ts`에 `/guest` 허용 + 기존 경로는 여전히 차단되는 케이스 추가(권한 판정 변경 시 테스트 선행 원칙)
+- **5-2 데모 데이터** ✅ (`src/server/guest/demo-data.ts`): `src/server/guest/` 아래 fixture. 날짜는 `src/utils/date.ts` 기준 **오늘(KST) 기준 상대값**으로 만들어 대시보드가 항상 최신처럼 보이게 하고, 학년은 `src/utils/grade.ts`로 계산되도록 생년월일을 구성
+- **5-3 페이지 분리** ✅: `StudentsView.tsx`, `TeachersView.tsx`로 표시 컴포넌트를 분리해 실데이터/게스트 페이지가 함께 사용한다. 쓰기 진입점은 `canManage`(학생) / `canManageAll`·`currentTeacherId`(교사)로 가린다. 대시보드는 `AttendanceDashboard.tsx`에 `canRefreshCalendar` 추가. 출석 화면은 `AttendanceInteractiveSection.tsx`에 `canManage`·`basePath` 추가 — 버튼을 가릴 뿐 아니라 **React Query 재조회까지 끈다**(조회 API도 승인 세션이 필요하므로 켜두면 403)
+- **5-4 UI** ✅: `src/components/layout/AppShell.tsx`(현재 `isSignedIn && isApproved`일 때만 메뉴 표시)에 게스트 배너·메뉴 처리, `src/lib/menu-items.ts`에 게스트용 메뉴(외부 링크 제외)
 - **5-4-1 진입점(마지막에)** ✅ 완료: 게스트 화면 4개(대시보드·출석·학생·교사)가 모두 끝난 뒤 로그인 페이지에 "로그인 없이 둘러보기" 버튼을 추가했다. 게스트 배너에도 "둘러보기 홈" 링크를 넣어, 상단 로고로 실데이터 홈에 갔다가 로그인으로 튕기는 막다른 길을 막았다.
-- **5-5 문서 갱신**: `docs/PRD.md` 접근 제어, `docs/PROJECT_POLICY.md` 역할·권한, `CLAUDE.md` 인증/권한 섹션(`CLAUDE.md` 변경 관리 규칙)
+- **5-5 문서 갱신** ✅: `docs/PRD.md` 접근 제어, `docs/PROJECT_POLICY.md` 역할·권한, `CLAUDE.md` 인증/권한 섹션(`CLAUDE.md` 변경 관리 규칙)
 - **5-6 검증**: 필수 검증 절차 + 비로그인으로 `/guest/*` 접근, 기존 경로 차단 유지, 게스트 페이지 HTML에 실데이터 문자열이 없는지 확인
+  - 경로 허용·차단은 `src/proxy.test.ts`로 고정돼 있다. 게스트 페이지는 DB를 조회하지 않아 실데이터가 실릴 경로가 구조적으로 없다.
 
 ---
 
 ## 권장 진행 순서
 
-1. **4-0 캘린더 사전 시험** — 외부 설정에 달려 있고 결과에 따라 인증 방식이 바뀌므로 먼저 확인
-2. **기능 1 구현** (4-1 ~ 4-4)
-3. **5-0 게스트 결정 → 기능 2 구현**
-4. 게스트 화면으로 `docs/IMPROVEMENT_PLAN.md` Phase 3 README 스크린샷 촬영
+1. ~~기능 2(게스트 모드) 구현~~ ✅
+2. ~~게스트 화면으로 README 스크린샷 촬영~~ ✅ (`docs/screenshots/`)
+3. **4-0 캘린더 사전 시험** — 형님의 Google Cloud 콘솔 작업이 필요하다. 결과에 따라 인증 방식이 바뀔 수 있다
+4. **기능 1 구현** (4-1 ~ 4-4)
 
 ---
 
@@ -208,7 +209,6 @@
 
 ## 남은 확인 사항
 
-- **게스트 공개 화면 범위**: 위 제안(대시보드·출석·학생·교사·레크레이션 공개, 가입 관리와 외부 링크 제외)대로 진행한다. 조정이 필요하면 5-0에서 확정.
 - **Google Cloud 콘솔 작업**: 서비스 계정 생성과 캘린더 공유는 형님 계정 권한이 필요하다(4-0).
 
 ## 확인되지 않은 것 (구현 전 검증 필요)
