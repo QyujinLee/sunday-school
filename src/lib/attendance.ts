@@ -44,19 +44,24 @@ export function getSelectedAttendanceTab(tabValue: string | string[] | undefined
 
 /**
  * 선택한 탭에 맞게 학생 목록을 거른다. '금주 출석' 탭은 출석한 학생만 남긴다.
+ * 졸업생은 출석 대상이 아니므로 모든 탭에서 뺀다(학년 라벨은 src/utils/grade.ts에서 계산한 값).
  */
 export function filterStudentsByAttendanceTab<T extends { gradeLabel: string; attendanceStatus: string }>(
   students: T[],
   selectedTab: AttendanceTabKey
 ): T[] {
+  const enrolledStudents = students.filter((student) => student.gradeLabel !== '졸업생');
+
   if (selectedTab === 'this_week') {
-    return students.filter((student) => student.attendanceStatus === 'PRESENT');
+    return enrolledStudents.filter((student) => student.attendanceStatus === 'PRESENT');
   }
 
   const selectedTabInfo = ATTENDANCE_TABS.find((tab) => tab.key === selectedTab);
   const targetGradeLabel = selectedTabInfo && 'gradeLabel' in selectedTabInfo ? selectedTabInfo.gradeLabel : null;
 
-  return targetGradeLabel ? students.filter((student) => student.gradeLabel === targetGradeLabel) : students;
+  return targetGradeLabel
+    ? enrolledStudents.filter((student) => student.gradeLabel === targetGradeLabel)
+    : enrolledStudents;
 }
 
 /**

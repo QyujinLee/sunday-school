@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  ATTENDANCE_TABS,
   filterStudentsByAttendanceTab,
   getAttendancePeriodInfo,
   getAttendanceTalentDelta,
@@ -13,6 +14,7 @@ const students = [
   { id: 'b', gradeLabel: '6학년', attendanceStatus: 'ABSENT' },
   { id: 'c', gradeLabel: '유아부', attendanceStatus: 'PRESENT' },
   { id: 'd', gradeLabel: '졸업생', attendanceStatus: 'ABSENT' },
+  { id: 'e', gradeLabel: '졸업생', attendanceStatus: 'PRESENT' },
 ];
 
 describe('getSelectedAttendanceTab', () => {
@@ -34,8 +36,15 @@ describe('filterStudentsByAttendanceTab', () => {
     expect(ids('this_week')).toEqual(['a', 'c']);
   });
 
-  it('전체 탭은 모두 남긴다', () => {
-    expect(ids('all')).toEqual(['a', 'b', 'c', 'd']);
+  it('전체 탭은 졸업생을 뺀 모든 학생을 남긴다', () => {
+    expect(ids('all')).toEqual(['a', 'b', 'c']);
+  });
+
+  it('졸업생은 이번 주에 출석했더라도 어느 탭에도 나오지 않는다', () => {
+    for (const tab of ATTENDANCE_TABS) {
+      expect(ids(tab.key)).not.toContain('e');
+      expect(ids(tab.key)).not.toContain('d');
+    }
   });
 
   it('학년 탭은 해당 학년만 남긴다', () => {
