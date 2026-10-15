@@ -38,7 +38,7 @@ export const teacherUpdateSchema = z.object({
 
 /**
  * 요청 본문을 정규화한 뒤 교사 수정 스키마로 검증한다.
- * is_active는 관리자만 변경할 수 있으므로 관리자가 아니면 검증 대상에서 제외한다.
+ * is_active는 관리자가 다른 교사를 수정할 때만 변경할 수 있으므로(canChangeActiveState) 그 외에는 검증 대상에서 제외한다.
  */
 export function parseTeacherUpdateInput(payload: Partial<TeacherUpdatePayload>, canChangeActiveState: boolean) {
   return teacherUpdateSchema.safeParse({
