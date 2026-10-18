@@ -262,7 +262,7 @@ export async function updateStudentTalent(
 /**
  * 클라이언트가 본 상태(expectedCurrentStatus)와 DB 상태가 같을 때만 출석을 변경하고 달란트를 연동한다.
  * 출석은 +1, 취소는 이번 주 출석 지급분이 남아 있을 때만 -1(getAttendanceTalentDelta 참고).
- * 다른 교사가 먼저 변경해 상태가 다르면 stale_state를 반환한다.
+ * 다른 교사가 먼저 변경해 상태가 다르면 stale_state를, 그사이 학생이 삭제됐으면 student_not_found를 반환한다.
  */
 export async function updateAttendanceWithExpectedStatus(
   studentId: string,
@@ -278,13 +278,22 @@ export async function updateAttendanceWithExpectedStatus(
       currentTalent: number;
       talentDelta: number;
     }
-  | {
-      result: 'stale_state';
-    }
+  | { result: 'stale_state' }
+  | { result: 'student_not_found' }
 > {
   return runSerializableTransactionWithRetry(() =>
     prisma.$transaction(
       async (tx) => {
+        // 학생이 없으면 출석 기록 생성이 외래키 위반(500)으로 끝나므로 먼저 확인한다.
+        const student = await tx.student.findUnique({
+          where: { id: studentId },
+          select: { currentTalent: true },
+        });
+
+        if (!student) {
+          return { result: 'student_not_found' as const };
+        }
+
         const existingAttendance = await tx.attendance.findUnique({
           where: { studentId_attendanceDate: { studentId, attendanceDate } },
         });
@@ -318,11 +327,6 @@ export async function updateAttendanceWithExpectedStatus(
         const talentDelta = getAttendanceTalentDelta(nextStatus, weeklyAttendanceTalent);
 
         if (talentDelta === 0) {
-          const student = await tx.student.findUniqueOrThrow({
-            where: { id: studentId },
-            select: { currentTalent: true },
-          });
-
           return { result: 'updated' as const, nextStatus, currentTalent: student.currentTalent, talentDelta };
         }
 

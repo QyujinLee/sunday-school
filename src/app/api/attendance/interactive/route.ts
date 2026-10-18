@@ -4,6 +4,7 @@ import { AttendanceStatus } from '@prisma/client';
 
 import { requireApprovedTeacher } from '@/lib/api-session';
 import { getAttendancePeriodInfo, getSelectedAttendanceTab } from '@/lib/attendance';
+import { isRecordNotFoundError } from '@/lib/prisma';
 import {
   TALENT_ADJUST_VALUES,
   getAttendanceInteractiveData,
@@ -85,6 +86,10 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: 'stale_state' }, { status: 409 });
       }
 
+      if (result.result === 'student_not_found') {
+        return NextResponse.json({ message: 'not_found' }, { status: 404 });
+      }
+
       return NextResponse.json({
         message: 'ok',
         student_id: body.student_id,
@@ -130,7 +135,12 @@ export async function POST(request: Request) {
           },
         },
       });
-    } catch {
+    } catch (error) {
+      // 그사이 학생이 삭제됐으면 달란트 갱신이 P2025로 실패한다.
+      if (isRecordNotFoundError(error)) {
+        return NextResponse.json({ message: 'not_found' }, { status: 404 });
+      }
+
       return NextResponse.json({ message: 'server_error' }, { status: 500 });
     }
   }

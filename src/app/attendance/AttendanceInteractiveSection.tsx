@@ -123,6 +123,10 @@ async function requestToggleAttendance(input: ToggleAttendanceInput): Promise<To
       throw new Error('stale_state');
     }
 
+    if (response.status === 404) {
+      throw new Error('student_not_found');
+    }
+
     throw new Error('attendance_toggle_failed');
   }
 
@@ -144,10 +148,17 @@ async function requestAdjustTalent(input: AdjustTalentInput): Promise<AdjustTale
   });
 
   if (!response.ok) {
-    throw new Error('talent_adjust_failed');
+    throw new Error(response.status === 404 ? 'student_not_found' : 'talent_adjust_failed');
   }
 
   return (await response.json()) as AdjustTalentResponse;
+}
+
+/**
+ * 출석 API가 학생을 찾지 못해(그사이 삭제됨) 실패한 오류인지 판별한다.
+ */
+function isStudentNotFoundError(error: unknown): boolean {
+  return error instanceof Error && error.message === 'student_not_found';
 }
 
 function TalentLogCardList({ logs }: { logs: SerializableTalentLogRow[] }) {
@@ -218,6 +229,18 @@ export default function AttendanceInteractiveSection({
     enabled: canManage,
   });
 
+  /**
+   * 이미 삭제된 학생을 조작했을 때 안내하고, 명단에서 빠지도록 최신 목록을 다시 불러온다.
+   */
+  function showStudentNotFoundToast() {
+    showToast({
+      variant: 'info',
+      message: '이미 삭제된 학생입니다.',
+      description: '최신 명단을 다시 불러옵니다.',
+    });
+    queryClient.invalidateQueries({ queryKey });
+  }
+
   const toggleAttendanceMutation = useMutation({
     mutationFn: requestToggleAttendance,
     onMutate: async ({ studentId, nextStatus }) => {
@@ -271,6 +294,8 @@ export default function AttendanceInteractiveSection({
           description: '최신 상태를 다시 불러옵니다.',
         });
         queryClient.invalidateQueries({ queryKey });
+      } else if (isStudentNotFoundError(error)) {
+        showStudentNotFoundToast();
       } else {
         showToast({
           variant: 'error',
@@ -346,9 +371,14 @@ export default function AttendanceInteractiveSection({
         message: '달란트를 조정했습니다.',
       });
     },
-    onError: (_error, _input, context) => {
+    onError: (error, _input, context) => {
       if (context?.previousData) {
         queryClient.setQueryData(queryKey, context.previousData);
+      }
+
+      if (isStudentNotFoundError(error)) {
+        showStudentNotFoundToast();
+        return;
       }
 
       showToast({
