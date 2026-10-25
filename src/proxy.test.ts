@@ -227,6 +227,63 @@ describe('proxy - 캐노니컬 도메인', () => {
   });
 });
 
+describe('proxy - API 요청', () => {
+  // fetch는 리다이렉트를 따라가 상태 페이지 HTML을 200으로 받으므로, API는 리다이렉트 대신 상태 코드로 응답해야
+  // 화면이 실패를 알 수 있다(저장되지 않았는데 성공 토스트가 뜨던 문제).
+  it('비로그인 API 요청은 로그인 리다이렉트 대신 401을 반환한다', async () => {
+    getTokenMock.mockResolvedValue(null);
+
+    const response = await proxy(request('/api/students'));
+
+    expect(response.status).toBe(401);
+    expect(redirectTarget(response)).toBeNull();
+    expect(await response.json()).toEqual({ message: 'unauthorized' });
+  });
+
+  it.each([
+    ['승인 대기', { approvalStatus: 'PENDING', role: 'TEACHER' }],
+    ['거절', { approvalStatus: 'REJECTED', role: 'TEACHER' }],
+    ['비활성', { approvalStatus: 'APPROVED', role: 'TEACHER', isActive: false }],
+  ])('%s 교사의 API 요청은 상태 페이지 리다이렉트 대신 403을 반환한다', async (_label, token) => {
+    getTokenMock.mockResolvedValue(token);
+
+    const response = await proxy(request('/api/attendance/interactive'));
+
+    expect(response.status).toBe(403);
+    expect(redirectTarget(response)).toBeNull();
+    expect(await response.json()).toEqual({ message: 'forbidden' });
+  });
+
+  it('동기화로 차단된 API 요청도 403과 함께 쿠키를 다시 발급한다', async () => {
+    getTokenMock.mockResolvedValue({ approvalStatus: 'APPROVED', role: 'TEACHER' });
+    syncTeacherSnapshotMock.mockImplementation(async (token: Record<string, unknown>) => {
+      delete token.approvalStatus;
+      delete token.role;
+      return true;
+    });
+
+    const response = await proxy(request('/api/students'));
+
+    expect(response.status).toBe(403);
+    expect(response.headers.get('set-cookie')).toContain('reissued-session-token');
+  });
+
+  it('승인된 활성 교사의 API 요청은 통과시킨다', async () => {
+    getTokenMock.mockResolvedValue({ approvalStatus: 'APPROVED', role: 'TEACHER', isActive: true });
+
+    const response = await proxy(request('/api/students'));
+
+    expect(response.status).toBe(200);
+    expect(redirectTarget(response)).toBeNull();
+  });
+
+  it('/api로 시작하기만 하는 페이지 경로는 API로 보지 않는다', async () => {
+    getTokenMock.mockResolvedValue(null);
+
+    expect(redirectTarget(await proxy(request('/apiary')))).toBe('/login?callback_url=%2Fapiary');
+  });
+});
+
 describe('proxy - 토큰 동기화와 쿠키 재발급', () => {
   it('동기화 주기 안이면 쿠키를 다시 발급하지 않는다', async () => {
     getTokenMock.mockResolvedValue({ approvalStatus: 'APPROVED', role: 'TEACHER' });

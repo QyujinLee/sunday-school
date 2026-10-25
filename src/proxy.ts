@@ -53,6 +53,14 @@ function isBypassPath(pathname: string): boolean {
 }
 
 /**
+ * API 경로인지 확인한다. API는 화면이 아니므로 리다이렉트 대신 상태 코드로 응답한다.
+ * fetch는 리다이렉트를 따라가 상태 페이지 HTML을 200으로 받기 때문에, 리다이렉트하면 화면이 실패를 알 수 없다.
+ */
+function isApiPath(pathname: string): boolean {
+  return pathname === '/api' || pathname.startsWith('/api/');
+}
+
+/**
  * 원래 요청 경로를 보존하기 위해 callback_url이 포함된 로그인 URL을 생성한다.
  */
 function buildLoginUrl(req: NextRequest): URL {
@@ -128,6 +136,10 @@ export async function proxy(req: NextRequest) {
     secureCookie: isSecureCookie(),
   });
 
+  if (!token && isApiPath(pathname)) {
+    return NextResponse.json({ message: 'unauthorized' }, { status: 401 });
+  }
+
   if (!token && !isAlwaysPublicPath(pathname)) {
     return NextResponse.redirect(buildLoginUrl(req));
   }
@@ -166,6 +178,10 @@ export async function proxy(req: NextRequest) {
 function resolveAuthorizedResponse(req: NextRequest, token: JWT): NextResponse {
   const { pathname } = req.nextUrl;
   const blockedStatusPath = getBlockedStatusPath(token);
+
+  if (blockedStatusPath && isApiPath(pathname)) {
+    return NextResponse.json({ message: 'forbidden' }, { status: 403 });
+  }
 
   if (blockedStatusPath) {
     return pathname === blockedStatusPath
