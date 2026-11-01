@@ -156,7 +156,7 @@ docs/                     # 기획·정책·계획 문서
 
 ### 환경변수
 
-`.env.local`에 아래 값을 설정합니다. **값은 저장소에 커밋하지 않습니다.**
+`.env.example`을 `.env.local`로 복사한 뒤 값을 채웁니다(`cp .env.example .env.local`). 값은 Vercel 프로젝트의 Settings → Environment Variables에서 가져옵니다. **값은 저장소에 커밋하지 않습니다.**
 
 | 이름 | 용도 |
 |---|---|
@@ -167,6 +167,14 @@ docs/                     # 기획·정책·계획 문서
 | `ADMIN_EMAILS` | 쉼표로 구분한 관리자 이메일. 이 이메일로 로그인하면 승인 없이 `ADMIN`이 됩니다 |
 | `GOOGLE_CALENDAR_ID` / `GOOGLE_CALENDAR_API_KEY` | 대시보드 주간 일정을 읽을 캘린더 |
 | `NEXT_PUBLIC_SITE_URL` | (선택) 메타데이터 기준 URL. `NEXTAUTH_URL`이 없을 때 사용 |
+
+#### 로컬에서 구글 로그인이 안 될 때
+
+- **`.env.local`이 없거나 `GOOGLE_CLIENT_ID`가 비어 있음**: 로그인 버튼을 눌러도 구글 로그인 화면으로 넘어가지 않거나 오류 화면이 나옵니다.
+- **`NEXTAUTH_URL`이 운영 주소**: proxy가 모든 요청을 운영 사이트로 리다이렉트합니다. 로컬에서는 `http://localhost:3000`이어야 합니다.
+- **`redirect_uri_mismatch` 오류**: Google Cloud 콘솔의 OAuth 클라이언트에 승인된 리디렉션 URI `http://localhost:3000/api/auth/callback/google`을 추가합니다.
+- `.env.local`을 바꾼 뒤에는 `yarn dev`를 다시 시작해야 반영됩니다. VS Code 내장 브라우저가 아니라 Chrome 같은 일반 브라우저에서 엽니다.
+- 수동 검증처럼 데이터를 바꾸는 확인은 운영 DB 대신 **Neon 브랜치**(만든 시점의 운영 데이터 복사본) 주소를 `DATABASE_URL`에 넣고 합니다.
 
 ### 실행
 
